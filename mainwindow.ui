@@ -1,0 +1,1287 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1394</width>
+    <height>800</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>NEXORA</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QMainWindow, QMainWindow::central, QWidget#centralwidget {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+        stop:0 #1e1b4b, stop:0.3 #312e81, stop:0.7 #6366f1, stop:1 #8b5cf6);
+}
+
+QFrame#sidebarWidget {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+        stop:0 #061a3a, stop:0.5 #0a2f6f, stop:1 #8a3ebd);
+    border-top-left-radius: 20px; 
+    border-bottom-left-radius: 20px;
+    border-top-right-radius: 0; 
+    border-bottom-right-radius: 0;
+}
+
+QFrame#contentContainer {
+    background: transparent;
+    border-top-right-radius: 20px; 
+    border-bottom-right-radius: 20px;
+    border-top-left-radius: 0; 
+    border-bottom-left-radius: 0;
+}
+
+QWidget#pageAjouterResident {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 #fefefe, stop:0.5 #f8f9fa, stop:1 #f1f3f4);
+    border-top-right-radius: 20px; 
+    border-bottom-right-radius: 20px;
+}
+
+QWidget#pageListeResidents {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 #fefefe, stop:0.5 #f8f9fa, stop:1 #f1f3f4);
+    border-top-right-radius: 20px; 
+    border-bottom-right-radius: 20px;
+}
+
+QWidget#pageStatistiques {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 #fefefe, stop:0.5 #f8f9fa, stop:1 #f1f3f4);
+    border-top-right-radius: 20px; 
+    border-bottom-right-radius: 20px;
+}
+
+/* Page Titles - Consistent styling for all main page titles */
+QLabel#titleAdd {
+    color:#ffffff !important; 
+    font: 700 32px &quot;Segoe UI&quot; !important; 
+    background:transparent !important;
+}
+
+QLabel#titleST,
+QLabel#titleLR {
+    color:#000000 !important; 
+    font: 700 32px &quot;Segoe UI&quot; !important; 
+    background:transparent !important;
+}
+
+QFrame#kpiTotal, QFrame#kpiProprietaires, QFrame#kpiLocataires,
+QFrame#distSexeCard, QFrame#distStatutCard {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+QLabel#lblKpiTotalTitle, QLabel#lblKpiPropTitle, QLabel#lblKpiLocTitle {
+    color:#6b7280; 
+    font:600 14px &quot;Segoe UI&quot;; 
+    background:transparent;
+}
+
+QLabel#lblKpiTotalValue, QLabel#lblKpiPropValue, QLabel#lblKpiLocValue {
+    color:#1f2937; 
+    font:700 40px &quot;Segoe UI&quot;;
+}
+
+QFrame#kpiTotal { 
+    border-top: 3px solid #3b82f6; 
+}
+
+QFrame#kpiProprietaires { 
+    border-top: 3px solid #10b981; 
+}
+
+QFrame#kpiLocataires { 
+    border-top: 3px solid #f59e0b; 
+}
+
+QLabel#lblSexeTitle, QLabel#lblStatutTitle {
+    color:#1f2937; 
+    font:600 16px &quot;Segoe UI&quot;; 
+    background:transparent;
+}
+
+QProgressBar {
+    background:#f3f4f6; 
+    border:1px solid #d1d5db; 
+    border-radius:8px;
+    color:#374151; 
+    text-align:center; 
+    min-height:20px;
+}
+
+QProgressBar::chunk { 
+    border-radius:8px; 
+}
+
+QProgressBar#pbHommes::chunk, QProgressBar#pbProps::chunk { 
+    background:#3b82f6; 
+}
+
+QProgressBar#pbFemmes::chunk, QProgressBar#pbLocs::chunk { 
+    background:#8b5cf6; 
+}
+
+QLabel#lblHommes, QLabel#lblFemmes, QLabel#lblProps, QLabel#lblLocs {
+    color:#6b7280; 
+    font:600 13px &quot;Segoe UI&quot;; 
+    background:transparent;
+}
+
+QFrame#formCard { 
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+        stop:0 #061a3a, stop:0.5 #0a2f6f, stop:1 #8a3ebd); 
+    border:1px solid rgba(107, 70, 193, 0.5); 
+    border-radius:16px; 
+    padding:18px; 
+    backdrop-filter: blur(10px);
+}
+
+QLabel {
+    color: #ffffff;
+    font-size: 14px;
+    background: transparent;
+}
+
+QLineEdit, QComboBox, QDateEdit {
+    background: rgba(255,255,255,0.15); 
+    border: 1px solid rgba(255,255,255,0.25); 
+    border-radius: 8px;
+    padding: 8px 12px; 
+    color: #ffffff; 
+    font-size: 14px; 
+    min-height: 32px;
+    font-weight: 500;
+    margin-bottom: 12px;
+}
+
+QLineEdit:focus, QComboBox:focus, QDateEdit:focus { 
+    border: 1px solid #a78bfa; 
+    background: rgba(255,255,255,0.25);
+    box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.2);
+}
+
+QLineEdit:hover, QComboBox:hover, QDateEdit:hover { 
+    border: 1px solid rgba(255,255,255,0.4);
+    background: rgba(255,255,255,0.2);
+}
+
+QLineEdit#searchLine {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 rgba(255,255,255,0.95), stop:1 rgba(249,250,251,0.95)); 
+    border:1px solid rgba(209,213,219,0.8); 
+    border-radius:10px;
+    padding:10px 14px; 
+    color:#374151; 
+    font-size:13px; 
+    height:32px;
+    min-height:32px;
+    max-height:32px;
+    resize: none;
+    margin-top: 0px;
+    margin-bottom: 0px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+QLineEdit#searchLine:focus { 
+    border-color:#8b5cf6;
+    background: rgba(255,255,255,1); 
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1), 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+QWidget#pageListeResidents QFrame#toolbarLR QPushButton {
+    height:36px;
+    min-height:36px; 
+    max-height:36px;
+    min-width:120px; 
+    padding:10px 16px;
+    border-radius:10px; 
+    font-size:13px; 
+    font-weight:600;
+    margin-top: 0px;
+    margin-bottom: 0px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+QWidget#pageListeResidents QFrame#toolbarLR QPushButton#btnSearch {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 #3b82f6, stop:1 #2563eb); 
+    color:#ffffff; 
+    border: 1px solid rgba(37, 99, 235, 0.5);
+}
+QWidget#pageListeResidents QFrame#toolbarLR QPushButton#btnSearch:hover { 
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 #2563eb, stop:1 #1d4ed8);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+QWidget#pageListeResidents QFrame#toolbarLR QPushButton#btnDelete {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 #ef4444, stop:1 #dc2626); 
+    color:#ffffff; 
+    border: 1px solid rgba(220, 38, 38, 0.5);
+}
+QWidget#pageListeResidents QFrame#toolbarLR QPushButton#btnDelete:hover { 
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 #dc2626, stop:1 #b91c1c);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+}
+
+QWidget#pageListeResidents QFrame#toolbarLR QPushButton#btnSort,
+QWidget#pageListeResidents QFrame#toolbarLR QPushButton#btnExportPDF,
+QWidget#pageListeResidents QFrame#toolbarLR QPushButton#btnExportExcel,
+QWidget#pageListeResidents QFrame#toolbarLR QPushButton#btnEdit {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 rgba(255,255,255,0.9), stop:1 rgba(249,250,251,0.9)); 
+    color:#374151; 
+    border:1px solid rgba(209,213,219,0.8);
+}
+QWidget#pageListeResidents QFrame#toolbarLR QPushButton#btnSort:hover,
+QWidget#pageListeResidents QFrame#toolbarLR QPushButton#btnExportPDF:hover,
+QWidget#pageListeResidents QFrame#toolbarLR QPushButton#btnExportExcel:hover,
+QWidget#pageListeResidents QFrame#toolbarLR QPushButton#btnEdit:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 rgba(243,244,246,1), stop:1 rgba(229,231,235,1));
+    border-color:#8b5cf6;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
+}
+
+QWidget#pageListeResidents QFrame#toolbarLR QFrame#vSep {
+    background:#d1d5db; 
+    min-width:1px; 
+    max-width:1px; 
+    border:none;
+}
+
+QPushButton#btnEnregistrer { 
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 #a855f7, stop:1 #8b5cf6);
+    color: #ffffff; 
+    border: none;
+    border-radius: 12px; 
+    padding: 16px 24px;
+    font-weight: 600;
+    font-size: 14px;
+    min-width: 140px;
+    min-height: 44px;
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+}
+
+QPushButton#btnEnregistrer:hover { 
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 #9333ea, stop:1 #7c3aed);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+}
+
+QPushButton#btnEnregistrer:pressed { 
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 #7c3aed, stop:1 #6d28d9);
+    transform: translateY(0px);
+    box-shadow: 0 2px 8px rgba(139, 92, 246, 0.5);
+}
+
+QPushButton#btnReinitialiser { 
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 #f97316, stop:1 #ea580c);
+    color: #ffffff; 
+    border: 1px solid rgba(234, 88, 12, 0.5);
+    border-radius: 12px; 
+    padding: 16px 24px;
+    font-weight: 600;
+    font-size: 14px;
+    min-width: 140px;
+    min-height: 44px;
+    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+}
+
+QPushButton#btnReinitialiser:hover { 
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 #ea580c, stop:1 #dc2626);
+    border: 1px solid rgba(234, 88, 12, 0.7);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(249, 115, 22, 0.4);
+}
+
+QPushButton#btnReinitialiser:pressed { 
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 #dc2626, stop:1 #c2410c);
+    transform: translateY(0px);
+    box-shadow: 0 2px 8px rgba(249, 115, 22, 0.5);
+}
+
+QPushButton#btnAnnuler { 
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 rgba(239, 68, 68, 0.9), stop:1 rgba(220, 38, 38, 0.9));
+    color: #ffffff; 
+    border: 1px solid rgba(239, 68, 68, 0.5);
+    border-radius: 12px; 
+    padding: 16px 24px;
+    font-weight: 600;
+    font-size: 14px;
+    min-width: 140px;
+    min-height: 44px;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+QPushButton#btnAnnuler:hover { 
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 rgba(220, 38, 38, 0.95), stop:1 rgba(185, 28, 28, 0.95));
+    border: 1px solid rgba(220, 38, 38, 0.7);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+}
+
+QPushButton#btnAnnuler:pressed { 
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 rgba(185, 28, 28, 1), stop:1 rgba(153, 27, 27, 1));
+    transform: translateY(0px);
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.5);
+}
+
+/* Sidebar Navigation Buttons - Modern Glass Morphism Design */
+QFrame#sidebarWidget QPushButton {
+    background: rgba(255,255,255,0.08);
+    color: #e2e8f0;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 16px;
+    padding: 16px 20px;
+    font-weight: 600;
+    font-size: 15px;
+    text-align: left;
+    min-height: 52px;
+    margin: 6px 0px;
+    backdrop-filter: blur(10px);
+}
+
+QFrame#sidebarWidget QPushButton:hover {
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.25);
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(139,92,246,0.2);
+}
+
+QFrame#sidebarWidget QPushButton:pressed {
+    background: rgba(139,92,246,0.4);
+    border: 1px solid #8b5cf6;
+    color: #ffffff;
+    transform: translateY(0px);
+}
+
+QFrame#sidebarWidget QPushButton:checked {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+        stop:0 rgba(139,92,246,0.9), stop:0.5 rgba(99,102,241,0.9), stop:1 rgba(168,85,247,0.9));
+    border: 1px solid rgba(139,92,246,0.8);
+    color: #ffffff;
+    font-weight: 700;
+    box-shadow: 0 4px 20px rgba(139,92,246,0.3);
+}
+
+QFrame#sidebarWidget QPushButton:checked:hover {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+        stop:0 rgba(124,58,237,1), stop:0.5 rgba(91,33,182,1), stop:1 rgba(147,51,234,1));
+    box-shadow: 0 6px 25px rgba(139,92,246,0.4);
+}
+
+QFrame#tableCard {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+QTableWidget#tableResidents {
+    background: transparent; 
+    color: #374151; 
+    gridline-color: #e5e7eb;
+    alternate-background-color: #f9fafb;
+}
+
+QTableWidget#tableResidents::item:selected {
+    background: #8b5cf6; 
+    color: #ffffff;
+}
+
+QHeaderView::section {
+    background: #f3f4f6; 
+    color: #374151; 
+    font-weight: 700;
+    padding: 12px 8px; 
+    border: none; 
+    border-right: 1px solid #e5e7eb;
+    border-bottom: 2px solid #8b5cf6;
+}
+
+QHeaderView::section:last { 
+    border-right: none; 
+}
+
+QTableCornerButton::section { 
+    background: #f3f4f6; 
+    border: none; 
+}
+
+QFrame#sidebarWidget QPushButton {
+    background: rgba(255,255,255,0.1);
+    border: none;
+    border-radius: 8px;
+    color: #fff;
+    font-size: 14px;
+    font-weight: bold;
+    padding: 12px 20px;
+    text-align: left;
+    margin: 4px 0;
+}
+
+QFrame#sidebarWidget QPushButton:hover {
+    background: rgba(255,255,255,0.2);
+}
+
+QFrame#sidebarWidget QPushButton:pressed {
+    background: rgba(255,255,255,0.15);
+}
+
+QFrame#sidebarWidget QLabel {
+    color: #fff;
+    font-size: 24px;
+    font-weight: bold;
+    padding: 20px 0;
+}</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <property name="spacing">
+     <number>0</number>
+    </property>
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
+    <item>
+     <widget class="QFrame" name="appShell">
+      <property name="frameShape">
+       <enum>QFrame::Shape::NoFrame</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Shadow::Raised</enum>
+      </property>
+      <layout class="QHBoxLayout" name="appShellLayout">
+       <property name="spacing">
+        <number>0</number>
+       </property>
+       <property name="leftMargin">
+        <number>16</number>
+       </property>
+       <property name="topMargin">
+        <number>16</number>
+       </property>
+       <property name="rightMargin">
+        <number>16</number>
+       </property>
+       <property name="bottomMargin">
+        <number>16</number>
+       </property>
+       <item>
+        <widget class="QFrame" name="sidebarWidget">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>240</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>240</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="frameShape">
+          <enum>QFrame::Shape::NoFrame</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Shadow::Raised</enum>
+         </property>
+         <layout class="QVBoxLayout" name="sidebarLayout">
+          <property name="spacing">
+           <number>10</number>
+          </property>
+          <property name="leftMargin">
+           <number>10</number>
+          </property>
+          <property name="topMargin">
+           <number>20</number>
+          </property>
+          <property name="rightMargin">
+           <number>20</number>
+          </property>
+          <property name="bottomMargin">
+           <number>20</number>
+          </property>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QFrame" name="contentContainer">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="frameShape">
+          <enum>QFrame::Shape::NoFrame</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Shadow::Raised</enum>
+         </property>
+         <layout class="QVBoxLayout" name="contentLayout">
+          <property name="spacing">
+           <number>0</number>
+          </property>
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QStackedWidget" name="stackedWidget">
+            <property name="styleSheet">
+             <string notr="true">background-color: rgb(255, 255, 255);</string>
+            </property>
+            <property name="currentIndex">
+             <number>0</number>
+            </property>
+            <widget class="QWidget" name="page">
+             <widget class="QWidget" name="gridLayoutWidget">
+              <property name="geometry">
+               <rect>
+                <x>20</x>
+                <y>140</y>
+                <width>351</width>
+                <height>591</height>
+               </rect>
+              </property>
+              <layout class="QGridLayout" name="gridLayout">
+               <item row="0" column="0">
+                <widget class="QFrame" name="frame">
+                 <property name="styleSheet">
+                  <string notr="true">QFrame {
+    background-color: #f2f2f7;   /* Couleur claire (gris très pâle) */
+    border-radius: 12px;         /* Coins arrondis */
+    border: 1px solid #dcdcdc;   /* Bordure fine */
+    padding: 10px;               /* Marge interne */
+}
+</string>
+                 </property>
+                 <property name="frameShape">
+                  <enum>QFrame::Shape::StyledPanel</enum>
+                 </property>
+                 <property name="frameShadow">
+                  <enum>QFrame::Shadow::Raised</enum>
+                 </property>
+                 <widget class="QLabel" name="label">
+                  <property name="geometry">
+                   <rect>
+                    <x>20</x>
+                    <y>60</y>
+                    <width>151</width>
+                    <height>41</height>
+                   </rect>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">QLabel {
+    background-color: transparent;   /* Pas de fond */
+    color: black;                    /* Texte noir */
+    font-size: 14px;
+    font-weight: bold;
+    font-family: &quot;Segoe UI&quot;;
+}
+</string>
+                  </property>
+                  <property name="text">
+                   <string>Nom de sponsor </string>
+                  </property>
+                 </widget>
+                 <widget class="QLabel" name="label_3">
+                  <property name="geometry">
+                   <rect>
+                    <x>20</x>
+                    <y>120</y>
+                    <width>151</width>
+                    <height>41</height>
+                   </rect>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">QLabel {
+    background-color: transparent;   /* Pas de fond */
+    color: black;                    /* Texte noir */
+    font-size: 14px;
+    font-weight: bold;
+    font-family: &quot;Segoe UI&quot;;
+}
+</string>
+                  </property>
+                  <property name="text">
+                   <string>Id </string>
+                  </property>
+                 </widget>
+                 <widget class="QLabel" name="label_4">
+                  <property name="geometry">
+                   <rect>
+                    <x>20</x>
+                    <y>190</y>
+                    <width>151</width>
+                    <height>41</height>
+                   </rect>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">QLabel {
+    background-color: transparent;   /* Pas de fond */
+    color: black;                    /* Texte noir */
+    font-size: 14px;
+    font-weight: bold;
+    font-family: &quot;Segoe UI&quot;;
+}
+</string>
+                  </property>
+                  <property name="text">
+                   <string>Type de sponsor </string>
+                  </property>
+                 </widget>
+                 <widget class="QLabel" name="label_5">
+                  <property name="geometry">
+                   <rect>
+                    <x>20</x>
+                    <y>260</y>
+                    <width>151</width>
+                    <height>41</height>
+                   </rect>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">QLabel {
+    background-color: transparent;   /* Pas de fond */
+    color: black;                    /* Texte noir */
+    font-size: 14px;
+    font-weight: bold;
+    font-family: &quot;Segoe UI&quot;;
+}
+</string>
+                  </property>
+                  <property name="text">
+                   <string>Montant </string>
+                  </property>
+                 </widget>
+                 <widget class="QLabel" name="label_6">
+                  <property name="geometry">
+                   <rect>
+                    <x>20</x>
+                    <y>330</y>
+                    <width>151</width>
+                    <height>41</height>
+                   </rect>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">QLabel {
+    background-color: transparent;   /* Pas de fond */
+    color: black;                    /* Texte noir */
+    font-size: 14px;
+    font-weight: bold;
+    font-family: &quot;Segoe UI&quot;;
+}
+</string>
+                  </property>
+                  <property name="text">
+                   <string>durée de contrat </string>
+                  </property>
+                 </widget>
+                 <widget class="QLabel" name="label_7">
+                  <property name="geometry">
+                   <rect>
+                    <x>20</x>
+                    <y>390</y>
+                    <width>151</width>
+                    <height>41</height>
+                   </rect>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">QLabel {
+    background-color: transparent;   /* Pas de fond */
+    color: black;                    /* Texte noir */
+    font-size: 14px;
+    font-weight: bold;
+    font-family: &quot;Segoe UI&quot;;
+}
+</string>
+                  </property>
+                  <property name="text">
+                   <string>contact </string>
+                  </property>
+                 </widget>
+                 <widget class="QLabel" name="label_8">
+                  <property name="geometry">
+                   <rect>
+                    <x>20</x>
+                    <y>450</y>
+                    <width>151</width>
+                    <height>41</height>
+                   </rect>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">QLabel {
+    background-color: transparent;   /* Pas de fond */
+    color: black;                    /* Texte noir */
+    font-size: 14px;
+    font-weight: bold;
+    font-family: &quot;Segoe UI&quot;;
+}
+</string>
+                  </property>
+                  <property name="text">
+                   <string>statut </string>
+                  </property>
+                 </widget>
+                 <widget class="QLineEdit" name="lineEdit">
+                  <property name="geometry">
+                   <rect>
+                    <x>180</x>
+                    <y>60</y>
+                    <width>161</width>
+                    <height>54</height>
+                   </rect>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">QLineEdit {
+    min-width: 45  px;
+    max-width: 200 px;
+    height: 30px;                 /* hauteur standard */
+    border: 1px solid #ccc;       /* bordure grise claire */
+    border-radius: 0px;           /* pas arrondi → carré */
+    background-color: #ffffff;    /* fond blanc */
+    color: black;                 /* texte noir */
+    padding: 4px;                 /* petite marge interne */
+    font-size: 13px;
+}
+</string>
+                  </property>
+                 </widget>
+                 <widget class="QLineEdit" name="lineEdit_3">
+                  <property name="geometry">
+                   <rect>
+                    <x>180</x>
+                    <y>260</y>
+                    <width>161</width>
+                    <height>54</height>
+                   </rect>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">QLineEdit {
+    min-width: 45  px;
+    max-width: 200 px;
+    height: 30px;                 /* hauteur standard */
+    border: 1px solid #ccc;       /* bordure grise claire */
+    border-radius: 0px;           /* pas arrondi → carré */
+    background-color: #ffffff;    /* fond blanc */
+    color: black;                 /* texte noir */
+    padding: 4px;                 /* petite marge interne */
+    font-size: 13px;
+}
+</string>
+                  </property>
+                 </widget>
+                 <widget class="QLineEdit" name="lineEdit_4">
+                  <property name="geometry">
+                   <rect>
+                    <x>180</x>
+                    <y>120</y>
+                    <width>161</width>
+                    <height>54</height>
+                   </rect>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">QLineEdit {
+    min-width: 45  px;
+    max-width: 200 px;
+    height: 30px;                 /* hauteur standard */
+    border: 1px solid #ccc;       /* bordure grise claire */
+    border-radius: 0px;           /* pas arrondi → carré */
+    background-color: #ffffff;    /* fond blanc */
+    color: black;                 /* texte noir */
+    padding: 4px;                 /* petite marge interne */
+    font-size: 13px;
+}
+</string>
+                  </property>
+                 </widget>
+                 <widget class="QLineEdit" name="lineEdit_7">
+                  <property name="geometry">
+                   <rect>
+                    <x>180</x>
+                    <y>390</y>
+                    <width>161</width>
+                    <height>54</height>
+                   </rect>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">QLineEdit {
+    min-width: 45  px;
+    max-width: 200 px;
+    height: 30px;                 /* hauteur standard */
+    border: 1px solid #ccc;       /* bordure grise claire */
+    border-radius: 0px;           /* pas arrondi → carré */
+    background-color: #ffffff;    /* fond blanc */
+    color: black;                 /* texte noir */
+    padding: 4px;                 /* petite marge interne */
+    font-size: 13px;
+}
+</string>
+                  </property>
+                 </widget>
+                 <widget class="QComboBox" name="comboBox">
+                  <property name="geometry">
+                   <rect>
+                    <x>180</x>
+                    <y>190</y>
+                    <width>161</width>
+                    <height>54</height>
+                   </rect>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">QComboBox {
+    min-width: 45  px;
+    max-width: 200 px;
+    height: 30px;                 /* hauteur standard */
+    border: 1px solid #ccc;       /* bordure grise claire */
+    border-radius: 0px;           /* pas arrondi → carré */
+    background-color: #ffffff;    /* fond blanc */
+    color: black;                 /* texte noir */
+    padding: 4px;                 /* petite marge interne */
+    font-size: 13px;
+}
+</string>
+                  </property>
+                  <item>
+                   <property name="text">
+                    <string>argent</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>produit </string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>partenariat média</string>
+                   </property>
+                  </item>
+                 </widget>
+                 <widget class="QComboBox" name="comboBox_2">
+                  <property name="geometry">
+                   <rect>
+                    <x>180</x>
+                    <y>450</y>
+                    <width>161</width>
+                    <height>54</height>
+                   </rect>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">QComboBox {
+    min-width: 45  px;
+    max-width: 200 px;
+    height: 30px;                 /* hauteur standard */
+    border: 1px solid #ccc;       /* bordure grise claire */
+    border-radius: 0px;           /* pas arrondi → carré */
+    background-color: #ffffff;    /* fond blanc */
+    color: black;                 /* texte noir */
+    padding: 4px;                 /* petite marge interne */
+    font-size: 13px;
+}
+</string>
+                  </property>
+                  <item>
+                   <property name="text">
+                    <string>actif</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>en attente</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>expiré</string>
+                   </property>
+                  </item>
+                 </widget>
+                 <widget class="QPushButton" name="pushButton">
+                  <property name="geometry">
+                   <rect>
+                    <x>30</x>
+                    <y>520</y>
+                    <width>93</width>
+                    <height>29</height>
+                   </rect>
+                  </property>
+                  <property name="text">
+                   <string>valider</string>
+                  </property>
+                 </widget>
+                 <widget class="QPushButton" name="pushButton_2">
+                  <property name="geometry">
+                   <rect>
+                    <x>230</x>
+                    <y>520</y>
+                    <width>93</width>
+                    <height>29</height>
+                   </rect>
+                  </property>
+                  <property name="text">
+                   <string>annuler </string>
+                  </property>
+                 </widget>
+                 <widget class="QDateEdit" name="dateEdit">
+                  <property name="geometry">
+                   <rect>
+                    <x>190</x>
+                    <y>330</y>
+                    <width>131</width>
+                    <height>54</height>
+                   </rect>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">QDateEdit {
+    min-width: 45  px;
+    max-width: 200 px;
+    height: 30px;                 /* hauteur standard */
+    border: 1px solid #ccc;       /* bordure grise claire */
+    border-radius: 0px;           /* pas arrondi → carré */
+    background-color: #ffffff;    /* fond blanc */
+    color: black;                 /* texte noir */
+    padding: 4px;                 /* petite marge interne */
+    font-size: 13px;
+}
+</string>
+                  </property>
+                 </widget>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+             <widget class="QFrame" name="frame_2">
+              <property name="geometry">
+               <rect>
+                <x>30</x>
+                <y>110</y>
+                <width>191</width>
+                <height>61</height>
+               </rect>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">QFrame {
+    background-color: #0d1376;   /* Mauve */
+    color: white;                /* Texte en blanc */
+    border-radius: 15px;         /* Arrondi */
+    padding: 8px;                /* Marge interne */
+    font-weight: bold;           /* Texte en gras */
+}
+</string>
+              </property>
+              <property name="frameShape">
+               <enum>QFrame::Shape::StyledPanel</enum>
+              </property>
+              <property name="frameShadow">
+               <enum>QFrame::Shadow::Raised</enum>
+              </property>
+             </widget>
+             <widget class="QTableWidget" name="tableWidget">
+              <property name="geometry">
+               <rect>
+                <x>395</x>
+                <y>281</y>
+                <width>711</width>
+                <height>421</height>
+               </rect>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">QTableWidget {
+    background-color: #000066;   /* Fond bleu */
+    gridline-color: #7f8c8d;     /* Lignes de la grille gris */
+    border: 1px solid #7f8c8d;   /* Bordure extérieure */
+    font-size: 13px;
+    color: white;                /* Texte en blanc */
+}
+
+QHeaderView::section {
+    background-color: #e7e7e7;   /* Bleu plus foncé pour l'entête */
+    color: Black ;
+    border: 1px solid #7f8c8d;
+    padding: 4px;
+    font-weight: bold;
+}
+</string>
+              </property>
+              <column>
+               <property name="text">
+                <string>Nom de sponsor</string>
+               </property>
+              </column>
+              <column>
+               <property name="text">
+                <string>id</string>
+               </property>
+              </column>
+              <column>
+               <property name="text">
+                <string>Type</string>
+               </property>
+              </column>
+              <column>
+               <property name="text">
+                <string>Montant</string>
+               </property>
+              </column>
+              <column>
+               <property name="text">
+                <string>Durée</string>
+               </property>
+              </column>
+              <column>
+               <property name="text">
+                <string>contact</string>
+               </property>
+              </column>
+              <column>
+               <property name="text">
+                <string>statut</string>
+               </property>
+              </column>
+             </widget>
+             <widget class="QPushButton" name="pushButton_3">
+              <property name="geometry">
+               <rect>
+                <x>400</x>
+                <y>720</y>
+                <width>161</width>
+                <height>31</height>
+               </rect>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">QPushButton {
+    background-color: #e7e7e7;   /* Pas de fond */
+    color: black;                    /* Texte noir */
+    font-size: 14px;
+    font-weight: bold;
+    font-family: &quot;Segoe UI&quot;;
+}
+</string>
+              </property>
+              <property name="text">
+               <string>exportation en pdf</string>
+              </property>
+             </widget>
+             <widget class="QLineEdit" name="lineEdit_5">
+              <property name="geometry">
+               <rect>
+                <x>410</x>
+                <y>220</y>
+                <width>281</width>
+                <height>54</height>
+               </rect>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">QLineEdit {
+    min-width: 45  px;
+    max-width: 400 px;
+    height: 15 px;                 /* hauteur standard */
+    border: 1px solid #ccc;       /* bordure grise claire */
+    border-radius: 0px;           /* pas arrondi → carré */
+    background-color: #ffffff;    /* fond blanc */
+    color: black;                 /* texte noir */
+    padding: 4px;                 /* petite marge interne */
+    font-size: 13px;
+}
+</string>
+              </property>
+              <property name="placeholderText">
+               <string>Rechercher par nom </string>
+              </property>
+             </widget>
+             <widget class="QPushButton" name="pushButton_4">
+              <property name="geometry">
+               <rect>
+                <x>700</x>
+                <y>230</y>
+                <width>51</width>
+                <height>29</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>🔍</string>
+              </property>
+             </widget>
+             <widget class="QLabel" name="label_9">
+              <property name="geometry">
+               <rect>
+                <x>790</x>
+                <y>229</y>
+                <width>161</width>
+                <height>31</height>
+               </rect>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">QLabel {
+    background-color: transparent;   /* Pas de fond */
+    color: black;                    /* Texte noir */
+    font-size: 50 px;
+    font-weight: bold;
+    font-family: &quot;Segoe UI&quot;;
+}
+</string>
+              </property>
+              <property name="text">
+               <string>Trier par </string>
+              </property>
+             </widget>
+             <widget class="QComboBox" name="comboBox_3">
+              <property name="geometry">
+               <rect>
+                <x>860</x>
+                <y>220</y>
+                <width>211</width>
+                <height>54</height>
+               </rect>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">QComboBox {
+    min-width: 45  px;
+    max-width: 400 px;
+    height: 15 px;                 /* hauteur standard */
+    border: 1px solid #ccc;       /* bordure grise claire */
+    border-radius: 0px;           /* pas arrondi → carré */
+    background-color: #ffffff;    /* fond blanc */
+    color: black;                 /* texte noir */
+    padding: 4px;                 /* petite marge interne */
+    font-size: 13px;
+}
+</string>
+              </property>
+              <item>
+               <property name="text">
+                <string>Type</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Statut</string>
+               </property>
+              </item>
+             </widget>
+             <widget class="QPushButton" name="pushButton_5">
+              <property name="geometry">
+               <rect>
+                <x>860</x>
+                <y>720</y>
+                <width>93</width>
+                <height>29</height>
+               </rect>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">QPushButton {
+    background-color: #e7e7e7;   /* Pas de fond */
+    color: black;                    /* Texte noir */
+    font-size: 14px;
+    font-weight: bold;
+    font-family: &quot;Segoe UI&quot;;
+}
+</string>
+              </property>
+              <property name="text">
+               <string>Modifier</string>
+              </property>
+             </widget>
+             <widget class="QPushButton" name="pushButton_6">
+              <property name="geometry">
+               <rect>
+                <x>980</x>
+                <y>720</y>
+                <width>93</width>
+                <height>29</height>
+               </rect>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">QPushButton {
+    background-color: #e7e7e7;   /* Pas de fond */
+    color: black;                    /* Texte noir */
+    font-size: 14px;
+    font-weight: bold;
+    font-family: &quot;Segoe UI&quot;;
+}
+</string>
+              </property>
+              <property name="text">
+               <string>Annuler</string>
+              </property>
+             </widget>
+             <widget class="QLabel" name="label_10">
+              <property name="geometry">
+               <rect>
+                <x>92</x>
+                <y>30</y>
+                <width>171</width>
+                <height>41</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>TextLabel</string>
+              </property>
+             </widget>
+            </widget>
+            <widget class="QWidget" name="page_2"/>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
