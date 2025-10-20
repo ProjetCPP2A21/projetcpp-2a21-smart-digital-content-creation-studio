@@ -78,8 +78,8 @@
    <widget class="QPushButton" name="pushButton_3">
     <property name="geometry">
      <rect>
-      <x>1110</x>
-      <y>530</y>
+      <x>1120</x>
+      <y>520</y>
       <width>90</width>
       <height>29</height>
      </rect>
@@ -320,6 +320,32 @@ background-color: rgb(59, 10, 103);</string>
     </property>
     <property name="styleSheet">
      <string notr="true">background-color: rgb(145, 145, 145);</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_5">
+    <property name="geometry">
+     <rect>
+      <x>470</x>
+      <y>520</y>
+      <width>131</width>
+      <height>29</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string> exporter pdf</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_6">
+    <property name="geometry">
+     <rect>
+      <x>700</x>
+      <y>520</y>
+      <width>90</width>
+      <height>29</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>statistique </string>
     </property>
    </widget>
   </widget>
