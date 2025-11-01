@@ -2,24 +2,31 @@
 #include <QDebug>
 #include <QSqlError>
 
-connection::connection() {}
+connection::connection() {}  // Constructeur privé
+
+// Fournit l'unique instance globale
+connection& connection::getInstance()
+{
+    static connection instance;  // créée une seule fois !
+    return instance;
+}
 
 bool connection::createconnect()
 {
-    db = QSqlDatabase::addDatabase("QODBC");
+    if (QSqlDatabase::contains("qt_sql_default_connection"))
+        db = QSqlDatabase::database("qt_sql_default_connection");
+    else
+        db = QSqlDatabase::addDatabase("QODBC");
 
-    //  Utilisation du DSN défini dans ton ODBC (nommé "artemia")
     db.setDatabaseName("artemia");
-
-    //  Identifiants Oracle
-    db.setUserName("artemia");   // même nom que dans SQL Developer
-    db.setPassword("0000");      // ton mot de passe Oracle exact
+    db.setUserName("artemia");
+    db.setPassword("0000");
 
     if (db.open()) {
-        qDebug() << " Connexion Oracle réussie via ODBC (artemia)";
+        qDebug() << "Connexion Oracle réussie via ODBC (Singleton actif)";
         return true;
     } else {
-        qDebug() << " Échec connexion Oracle:" << db.lastError().text();
+        qDebug() << "Échec connexion Oracle:" << db.lastError().text();
         return false;
     }
 }
