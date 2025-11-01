@@ -7,15 +7,19 @@ connection::connection() {}
 bool connection::createconnect()
 {
     db = QSqlDatabase::addDatabase("QODBC");
-    db.setDatabaseName("GestionClients");
-    db.setUserName("selimaa");
-    db.setPassword("0000");
+
+    //  Utilisation du DSN défini dans ton ODBC (nommé "artemia")
+    db.setDatabaseName("artemia");
+
+    //  Identifiants Oracle
+    db.setUserName("artemia");   // même nom que dans SQL Developer
+    db.setPassword("0000");      // ton mot de passe Oracle exact
 
     if (db.open()) {
-        qDebug() << "Connexion Oracle réussie ";
+        qDebug() << " Connexion Oracle réussie via ODBC (artemia)";
         return true;
     } else {
-        qDebug() << "Échec connexion Oracle :" << db.lastError().text();
+        qDebug() << " Échec connexion Oracle:" << db.lastError().text();
         return false;
     }
 }

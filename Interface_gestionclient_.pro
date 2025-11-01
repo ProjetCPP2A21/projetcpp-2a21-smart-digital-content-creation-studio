@@ -29,3 +29,6 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 QT += sql
 CONFIG += console
 CONFIG -= app_bundle
+
+QT += charts
+
