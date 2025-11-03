@@ -8,7 +8,7 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
     a.setStyleSheet("QWidget { background-color: white; color: black; }");
     gestion_employe w;
-    Connection c;
+    Connection& c= Connection::createInstance();
     bool test=c.createconnect();
     if(test)
     {w.show();

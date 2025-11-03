@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1462</width>
+    <width>1250</width>
     <height>701</height>
    </rect>
   </property>
@@ -17,7 +17,7 @@
    <widget class="QTabWidget" name="tabWidget">
     <property name="geometry">
      <rect>
-      <x>70</x>
+      <x>10</x>
       <y>10</y>
       <width>1231</width>
       <height>661</height>
@@ -30,7 +30,7 @@
      <string notr="true"/>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>0</number>
     </property>
     <property name="documentMode">
      <bool>false</bool>
@@ -445,6 +445,41 @@ QGroupBox QComboBox::down-arrow {
            <height>251</height>
           </rect>
          </property>
+         <attribute name="horizontalHeaderDefaultSectionSize">
+          <number>145</number>
+         </attribute>
+         <row/>
+         <row/>
+         <row/>
+         <row/>
+         <row/>
+         <row/>
+         <row/>
+         <column>
+          <property name="text">
+           <string> ID   </string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Poste    </string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Nom    </string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string> Prénom   </string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Email    </string>
+          </property>
+         </column>
         </widget>
        </widget>
       </widget>
@@ -578,17 +613,14 @@ QPushButton:hover {
      <attribute name="title">
       <string>    statistiques    </string>
      </attribute>
-     <widget class="QLabel" name="statistique">
+     <widget class="QWidget" name="statistiques_2" native="true">
       <property name="geometry">
        <rect>
-        <x>230</x>
-        <y>30</y>
-        <width>861</width>
-        <height>521</height>
+        <x>30</x>
+        <y>10</y>
+        <width>1141</width>
+        <height>601</height>
        </rect>
-      </property>
-      <property name="text">
-       <string/>
       </property>
      </widget>
     </widget>
