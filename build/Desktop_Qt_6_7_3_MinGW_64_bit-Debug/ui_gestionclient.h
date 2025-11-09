@@ -54,6 +54,7 @@ public:
     QVBoxLayout *verticalLayout_5;
     QHBoxLayout *horizontalLayout_4;
     QLineEdit *leSearch_6;
+    QPushButton *pushButton_9;
     QPushButton *pushButton_7;
     QPushButton *pushButton_8;
     QPushButton *pushButton_6;
@@ -285,6 +286,22 @@ public:
 
         horizontalLayout_4->addWidget(leSearch_6);
 
+        pushButton_9 = new QPushButton(layoutWidget_2);
+        pushButton_9->setObjectName("pushButton_9");
+        pushButton_9->setStyleSheet(QString::fromUtf8("QPushButton {\n"
+"    background: #6A0DAD;\n"
+"    color: white;\n"
+"    border: 1px solid #4B0082;\n"
+"    border-radius: 6px;\n"
+"    padding: 5px 10px;\n"
+"}\n"
+"\n"
+"QPushButton:hover {\n"
+"    background: #1B1B3A;\n"
+"}"));
+
+        horizontalLayout_4->addWidget(pushButton_9);
+
         pushButton_7 = new QPushButton(layoutWidget_2);
         pushButton_7->setObjectName("pushButton_7");
         pushButton_7->setStyleSheet(QString::fromUtf8("QPushButton {\n"
@@ -365,6 +382,55 @@ public:
 "        stop:0 white,\n"
 "        stop:1 #FB8C00\n"
 "    );\n"
+"\n"
+"                QTableWidget {\n"
+"    border: none;\n"
+"    border-radius: 10px;\n"
+"    background-color: #F9F6FF;                /* fond lavande p\303\242le */\n"
+"    color: #1E1A2E;                           /* texte anthracite profond */\n"
+"    gridline-color: #D3C0FF;                  /* lignes fines lavande */\n"
+"    alternate-background-color: #EFE9FF;      /* z\303\251brage doux */\n"
+"    selection-background-color: qlineargradient(\n"
+"        x1:0, y1:0, x2:1, y2:1,\n"
+"        stop:0 #8E24AA,\n"
+"        stop:1 #CE93D8\n"
+"    );                                        /* d\303\251grad\303\251 mauve clair */\n"
+"    selection-color: white;\n"
+"    font-family: \"Poppins\";\n"
+"    font-size: 10.5pt;\n"
+"}\n"
+"\n"
+"    QHeaderView::section {\n"
+"    back"
+                        "ground: qlineargradient(\n"
+"        x1:0, y1:0, x2:1, y2:1,\n"
+"        stop:0 #5E35B1,\n"
+"        stop:1 #AB47BC\n"
+"    );                                        /* d\303\251grad\303\251 violet pastel */\n"
+"    color: white;\n"
+"    font-weight: bold;\n"
+"    border: none;\n"
+"    padding: 8px;\n"
+"    border-radius: 4px;\n"
+"}\n"
+"    QTableCornerButton::section {\n"
+"    background: #6A0DAD;\n"
+"    border: none;\n"
+"}\n"
+"\n"
+"QScrollBar:vertical {\n"
+"    background: #F2E9FF;\n"
+"    width: 10px;\n"
+"    margin: 0px 0px 0px 0px;\n"
+"    border-radius: 5px;\n"
+"}\n"
+"QScrollBar::handle:vertical {\n"
+"    background: #B388FF;\n"
+"    border-radius: 5px;\n"
+"}\n"
+"QScrollBar::handle:vertical:hover {\n"
+"    background: #8E24AA;\n"
+"}\n"
 "}"));
         tableClients_6->setColumnCount(8);
 
@@ -413,6 +479,7 @@ public:
         btnAjouter_3->setText(QCoreApplication::translate("GestionClient", "Ajouter", nullptr));
         btnSupprimer_3->setText(QCoreApplication::translate("GestionClient", "Supprimer", nullptr));
         leSearch_6->setPlaceholderText(QCoreApplication::translate("GestionClient", "Recherche...", nullptr));
+        pushButton_9->setText(QCoreApplication::translate("GestionClient", "Trier", nullptr));
         pushButton_7->setText(QCoreApplication::translate("GestionClient", "Export CSV", nullptr));
         pushButton_8->setText(QCoreApplication::translate("GestionClient", "Statistiques", nullptr));
         pushButton_6->setText(QCoreApplication::translate("GestionClient", "Clients Inactifs", nullptr));

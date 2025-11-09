@@ -408,6 +408,26 @@ QGroupBox QPushButton:hover {
        </widget>
       </item>
       <item>
+       <widget class="QPushButton" name="pushButton_9">
+        <property name="styleSheet">
+         <string notr="true">QPushButton {
+    background: #6A0DAD;
+    color: white;
+    border: 1px solid #4B0082;
+    border-radius: 6px;
+    padding: 5px 10px;
+}
+
+QPushButton:hover {
+    background: #1B1B3A;
+}</string>
+        </property>
+        <property name="text">
+         <string>Trier</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QPushButton" name="pushButton_7">
         <property name="styleSheet">
          <string notr="true">QPushButton {
@@ -481,6 +501,7 @@ QPushButton:hover {
         stop:0 white,
         stop:1 #FB8C00
     );
+
 }</string>
       </property>
       <property name="columnCount">

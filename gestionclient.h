@@ -22,7 +22,8 @@ private slots:
     void on_btnSupprimer_3_clicked();
     void on_leSearch_6_textChanged(const QString &text);
     void on_pushButton_7_clicked();  // export CSV
-    //void on_pushButton_8_clicked();  // stats
+    void on_pushButton_9_clicked();  // Trier
+    void on_pushButton_8_clicked();  // stats
     //void on_pushButton_6_clicked();  // PDF inactifs
 
 private:

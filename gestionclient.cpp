@@ -117,12 +117,7 @@ void GestionClient::on_tableClients_6_cellClicked(int row, int column)
 // === AJOUTER ===
 void GestionClient::on_btnAjouter_3_clicked()
 {
-    if (ui->leId_6->text().isEmpty()) {
-        QMessageBox::warning(this, "Attention", "Veuillez saisir un ID valide !");
-        return;
-    }
-
-    int id = ui->leId_6->text().toInt();
+    QString idStr = ui->leId_6->text().trimmed();
     QString nom = ui->leNom_6->text().trimmed();
     QString email = ui->leEmail_6->text().trimmed();
     QString tel = ui->leTel_6->text().trimmed();
@@ -130,29 +125,51 @@ void GestionClient::on_btnAjouter_3_clicked()
     QString pays = ui->cbPays_6->currentText();
     QDate dateInscription = ui->deDate_6->date();
 
-    // Vérification anti-doublons Oracle
+    // --- Contrôles de saisie ---
+    QRegularExpression regexId("^[0-9]{8}$");
+    QRegularExpression regexTel("^[0-9]{8}$");
+    QRegularExpression regexNom("^[A-Za-zÀ-ÖØ-öø-ÿ\\s]+$");
+    QRegularExpression regexEmail("^[\\w._%+-]+@[\\w.-]+\\.[A-Za-z]{2,}$");
+
+    if (!regexId.match(idStr).hasMatch()) {
+        QMessageBox::warning(this, "Erreur", "L'ID doit contenir exactement 8 chiffres.");
+        return;
+    }
+    if (!regexNom.match(nom).hasMatch()) {
+        QMessageBox::warning(this, "Erreur", "Le nom/prénom ne doit contenir que des lettres et espaces.");
+        return;
+    }
+    if (!regexEmail.match(email).hasMatch()) {
+        QMessageBox::warning(this, "Erreur", "Veuillez saisir une adresse e-mail valide (ex: nom@mail.com).");
+        return;
+    }
+    if (!regexTel.match(tel).hasMatch()) {
+        QMessageBox::warning(this, "Erreur", "Le numéro de téléphone doit contenir exactement 8 chiffres.");
+        return;
+    }
+
+    int id = idStr.toInt();
+
+    // Vérification doublon
     QSqlQuery check;
     check.prepare("SELECT COUNT(*) FROM CLIENTT WHERE LOWER(NOM)=LOWER(:nom) OR LOWER(EMAIL)=LOWER(:email) OR TELEPHONE=:tel");
     check.bindValue(":nom", nom);
     check.bindValue(":email", email);
     check.bindValue(":tel", tel);
-
     if (!check.exec()) {
         QMessageBox::critical(this, "Erreur SQL", check.lastError().text());
         return;
     }
-
     check.next();
-    int count = check.value(0).toInt();
-
-    if (count > 0) {
+    if (check.value(0).toInt() > 0) {
         QMessageBox::warning(this, "Doublon détecté", "Ce client existe déjà.");
         return;
     }
 
+    // Ajout du client
     Client c(id, nom, email, tel, secteur, pays, dateInscription);
     if (c.ajouter()) {
-        QMessageBox::information(this, "Succès ", "Client ajouté avec succès !");
+        QMessageBox::information(this, "Succès", "Client ajouté avec succès !");
         refreshTable();
     } else {
         QMessageBox::critical(this, "Erreur", "Échec de l'ajout du client !");
@@ -165,15 +182,10 @@ void GestionClient::on_btnAjouter_3_clicked()
 
 
 
-// === MODIFIER ===
+//Modifier client
 void GestionClient::on_btnModifier_3_clicked()
 {
-    if (ui->leId_6->text().isEmpty()) {
-        QMessageBox::warning(this, "Attention", "Veuillez saisir un ID valide à modifier !");
-        return;
-    }
-
-    int id = ui->leId_6->text().toInt();
+    QString idStr = ui->leId_6->text().trimmed();
     QString nom = ui->leNom_6->text().trimmed();
     QString email = ui->leEmail_6->text().trimmed();
     QString tel = ui->leTel_6->text().trimmed();
@@ -181,27 +193,49 @@ void GestionClient::on_btnModifier_3_clicked()
     QString pays = ui->cbPays_6->currentText();
     QDate dateInscription = ui->deDate_6->date();
 
-    // Vérification anti-doublons (exclut le client en cours de modif)
+    // --- Contrôles de saisie ---
+    QRegularExpression regexId("^[0-9]{8}$");
+    QRegularExpression regexTel("^[0-9]{8}$");
+    QRegularExpression regexNom("^[A-Za-zÀ-ÖØ-öø-ÿ\\s]+$");
+    QRegularExpression regexEmail("^[\\w._%+-]+@[\\w.-]+\\.[A-Za-z]{2,}$");
+
+    if (!regexId.match(idStr).hasMatch()) {
+        QMessageBox::warning(this, "Erreur", "L'ID doit contenir exactement 8 chiffres.");
+        return;
+    }
+    if (!regexNom.match(nom).hasMatch()) {
+        QMessageBox::warning(this, "Erreur", "Le nom/prénom ne doit contenir que des lettres et espaces.");
+        return;
+    }
+    if (!regexEmail.match(email).hasMatch()) {
+        QMessageBox::warning(this, "Erreur", "Veuillez saisir une adresse e-mail valide (ex: nom@mail.com).");
+        return;
+    }
+    if (!regexTel.match(tel).hasMatch()) {
+        QMessageBox::warning(this, "Erreur", "Le numéro de téléphone doit contenir exactement 8 chiffres.");
+        return;
+    }
+
+    int id = idStr.toInt();
+
+    // Vérification doublon
     QSqlQuery check;
     check.prepare("SELECT COUNT(*) FROM CLIENTT WHERE (LOWER(NOM)=LOWER(:nom) OR LOWER(EMAIL)=LOWER(:email) OR TELEPHONE=:tel) AND IDCLIENT!=:id");
     check.bindValue(":nom", nom);
     check.bindValue(":email", email);
     check.bindValue(":tel", tel);
     check.bindValue(":id", id);
-
     if (!check.exec()) {
         QMessageBox::critical(this, "Erreur SQL", check.lastError().text());
         return;
     }
-
     check.next();
-    int count = check.value(0).toInt();
-
-    if (count > 0) {
-        QMessageBox::warning(this, "️ Doublon détecté", "Un autre client avec ces informations existe déjà !");
+    if (check.value(0).toInt() > 0) {
+        QMessageBox::warning(this, "Doublon détecté", "Un autre client avec ces informations existe déjà !");
         return;
     }
 
+    // Modification
     Client c(id, nom, email, tel, secteur, pays, dateInscription);
     if (c.modifier()) {
         QMessageBox::information(this, "Succès", "Client modifié avec succès !");
@@ -282,7 +316,7 @@ void GestionClient::on_leSearch_6_textChanged(const QString &text)
 
 
 
-// EXPORT CSV (inchangé)
+// EXPORT CSV
 void GestionClient::on_pushButton_7_clicked()
 {
     QString filePath = QFileDialog::getSaveFileName(this, "Exporter les clients", "", "Fichiers CSV (*.csv)");
@@ -311,3 +345,183 @@ void GestionClient::on_pushButton_7_clicked()
     QMessageBox::information(this, "Succès", " Exportation terminée avec succès !");
 }
 
+
+
+
+
+
+//TRIER
+void GestionClient::on_pushButton_9_clicked()
+{
+    // 🔹 Création du modèle trié (ordre croissant sur la date d’inscription)
+    QSqlQueryModel *model = new QSqlQueryModel();
+    model->setQuery("SELECT * FROM CLIENTT ORDER BY DATEINSCRIPTION ASC");
+
+    // 🔸 Réinitialisation du tableau
+    ui->tableClients_6->setRowCount(0);
+    ui->tableClients_6->setColumnCount(8);
+    QStringList headers = {"Activité", "ID", "Nom", "Email", "Téléphone", "Secteur d'activité", "Pays", "Date d'inscription"};
+    ui->tableClients_6->setHorizontalHeaderLabels(headers);
+
+    QDate today = QDate::currentDate();
+
+    // 🔸 Boucle de remplissage complète
+    for (int i = 0; i < model->rowCount(); i++) {
+        ui->tableClients_6->insertRow(i);
+
+        // --- Calcul activité client ---
+        QDate dateInscription = model->data(model->index(i, 6)).toDate();
+        bool inactif = (dateInscription.daysTo(today) > 30);
+
+        QWidget *cellWidget = new QWidget();
+        QHBoxLayout *layout = new QHBoxLayout(cellWidget);
+        layout->setContentsMargins(0, 0, 0, 0);
+        layout->setAlignment(Qt::AlignCenter);
+
+        QLabel *bubble = new QLabel();
+        bubble->setFixedSize(14, 14);
+        bubble->setStyleSheet(QString("border-radius:7px; background-color:%1;")
+                                  .arg(inactif ? "#E53935" : "#43A047"));
+        layout->addWidget(bubble);
+        ui->tableClients_6->setCellWidget(i, 0, cellWidget);
+
+        // --- Remplissage des colonnes restantes ---
+        for (int j = 0; j < model->columnCount(); j++) {
+            QVariant data = model->data(model->index(i, j));
+            QString value;
+
+            if (data.typeId() == QMetaType::QDate || data.typeId() == QMetaType::QDateTime)
+                value = data.toDate().toString("yyyy-MM-dd");
+            else
+                value = data.toString();
+
+            ui->tableClients_6->setItem(i, j + 1, new QTableWidgetItem(value));
+        }
+    }
+
+    // 🔸 Ajustements finaux
+    ui->tableClients_6->resizeColumnsToContents();
+    ui->tableClients_6->horizontalHeader()->setStretchLastSection(true);
+
+    QMessageBox::information(this, "Tri effectué",
+                             "✅ Le tableau a été trié par date d'inscription (ordre croissant).");
+}
+
+
+
+
+
+
+//STATISTIQUES
+void GestionClient::on_pushButton_8_clicked()
+{
+    QSqlQuery query;
+    query.prepare(R"(
+        SELECT TO_CHAR(DATEINSCRIPTION, 'MM') AS mois, COUNT(*) AS total
+        FROM CLIENTT
+        GROUP BY TO_CHAR(DATEINSCRIPTION, 'MM')
+        ORDER BY mois
+    )");
+
+    if (!query.exec()) {
+        QMessageBox::critical(this, "Erreur SQL", query.lastError().text());
+        return;
+    }
+
+    QBarSet *setNouveaux = new QBarSet("Nouveaux clients");
+    QBarSet *setAnciens = new QBarSet("Anciens clients (> 30 jours)");
+
+    setNouveaux->setColor(QColor("#6A0DAD"));
+    setAnciens->setColor(QColor("#FB8C00"));
+
+    QStringList categories;
+    QVector<int> dataNouveaux(12, 0);
+    QVector<int> dataAnciens(12, 0);
+
+    QDate today = QDate::currentDate();
+
+    while (query.next()) {
+        int mois = query.value("mois").toInt();
+        int total = query.value("total").toInt();
+
+        QSqlQuery subQuery;
+        subQuery.prepare(R"(
+            SELECT COUNT(*) FROM CLIENTT
+            WHERE TO_CHAR(DATEINSCRIPTION, 'MM') = :mois
+            AND (TRUNC(:today - DATEINSCRIPTION) > 30)
+        )");
+        subQuery.bindValue(":mois", mois);
+        subQuery.bindValue(":today", today);
+        subQuery.exec();
+        subQuery.next();
+        int anciens = subQuery.value(0).toInt();
+
+        int nouveaux = total - anciens;
+        dataNouveaux[mois - 1] = nouveaux;
+        dataAnciens[mois - 1] = anciens;
+    }
+
+    for (int i = 0; i < 12; ++i) {
+        categories << QLocale::system().monthName(i + 1);
+    }
+
+    *setNouveaux << dataNouveaux[0] << dataNouveaux[1] << dataNouveaux[2] << dataNouveaux[3]
+                 << dataNouveaux[4] << dataNouveaux[5] << dataNouveaux[6] << dataNouveaux[7]
+                 << dataNouveaux[8] << dataNouveaux[9] << dataNouveaux[10] << dataNouveaux[11];
+
+    *setAnciens << dataAnciens[0] << dataAnciens[1] << dataAnciens[2] << dataAnciens[3]
+                << dataAnciens[4] << dataAnciens[5] << dataAnciens[6] << dataAnciens[7]
+                << dataAnciens[8] << dataAnciens[9] << dataAnciens[10] << dataAnciens[11];
+
+    QBarSeries *series = new QBarSeries();
+    series->append(setNouveaux);
+    series->append(setAnciens);
+
+    QChart *chart = new QChart();
+    chart->addSeries(series);
+    chart->setTitle("📊 Répartition des clients (nouveaux vs anciens)");
+    chart->setAnimationOptions(QChart::SeriesAnimations);
+    chart->setBackgroundBrush(QBrush(QColor("#EDEAF9")));
+    chart->setTitleBrush(QBrush(QColor("#14172D")));
+
+    QFont font("Segoe UI", 10, QFont::Bold);
+    chart->setTitleFont(font);
+
+    QBarCategoryAxis *axisX = new QBarCategoryAxis();
+    axisX->append(categories);
+    axisX->setLabelsColor(QColor("#14172D"));
+    chart->addAxis(axisX, Qt::AlignBottom);
+    series->attachAxis(axisX);
+
+    // ✅ Axe Y corrigé : entiers seulement
+    QValueAxis *axisY = new QValueAxis();
+    axisY->setTitleText("Nombre de clients");
+    axisY->setLabelsColor(QColor("#14172D"));
+    axisY->setTitleBrush(QBrush(QColor("#14172D")));
+    axisY->setLabelFormat("%d");
+    axisY->setTickType(QValueAxis::TicksDynamic);
+    axisY->setMinorTickCount(0);
+    axisY->setTickInterval(1.0);
+
+    chart->addAxis(axisY, Qt::AlignLeft);
+    series->attachAxis(axisY);
+
+    chart->legend()->setVisible(true);
+    chart->legend()->setAlignment(Qt::AlignTop);
+    chart->legend()->setLabelColor(QColor("#14172D"));
+    chart->legend()->setFont(QFont("Segoe UI", 9));
+    chart->legend()->setBackgroundVisible(false);
+
+    QChartView *chartView = new QChartView(chart);
+    chartView->setRenderHint(QPainter::Antialiasing);
+    chartView->setStyleSheet("background-color: #EDEAF9; border-radius: 10px;");
+
+    QDialog *dialog = new QDialog(this);
+    dialog->setWindowTitle("Statistiques des Clients");
+    dialog->resize(900, 600);
+
+    QVBoxLayout *layout = new QVBoxLayout(dialog);
+    layout->addWidget(chartView);
+    dialog->setLayout(layout);
+    dialog->exec();
+}
