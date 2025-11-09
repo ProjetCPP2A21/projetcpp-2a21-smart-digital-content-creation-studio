@@ -37,7 +37,6 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    refreshClientTable(); // Afficher les clients dès le lancement
 
     //  Style uniforme pour tous les boutons
     this->setStyleSheet("QPushButton { background:#2A2E63; color:#EDEAF9; border:1px solid #4B4F87; border-radius:8px; padding:6px 12px; }"
@@ -519,6 +518,7 @@ void MainWindow::afficherStatistiques()
 
 
 
+
 //Gestion_Client//Selima
 
 void MainWindow::refreshClientTable()
@@ -951,5 +951,6 @@ void MainWindow::on_pushButton_client_clicked()
     ui->stackedWidget->setCurrentWidget(ui->page_client);
     refreshClientTable(); // ✅ recharge la table à chaque clic sur Client
 }
+
 
 

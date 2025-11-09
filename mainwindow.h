@@ -38,6 +38,7 @@ private slots:
     void afficherStatistiques();
     void onItemChanged(QTableWidgetItem *item);
 
+
     //client//Selima
     void on_tableClients_6_cellClicked(int row, int column);
     void on_btnAjouter_3_clicked();
@@ -56,7 +57,9 @@ private:
     Ui::MainWindow *ui;
     QToolBar *m_tb = nullptr;
     void setActiveButton(QPushButton *btn);
+
     void refreshClientTable(); //Client
+
 
 };
 #endif // MAINWINDOW_H
