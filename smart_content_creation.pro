@@ -26,6 +26,10 @@ HEADERS += \
 
 FORMS += \
     Formulaires/mainwindow.ui
+<<<<<<< HEAD
+=======
+
+>>>>>>> a8c0b13 (correction .pro par git)
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
