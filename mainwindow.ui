@@ -308,7 +308,6 @@ QStackedWidget QPushButton:hover {
        <string notr="true">QPushButton {
 
     background-color: #4B0082;
-=======
     background-color: #4B0082;   /* violet foncé */
 
     color: white;
@@ -1575,7 +1574,6 @@ QGroupBox QComboBox::down-arrow {
          </item>
         </layout>
        </widget>
->>>>>>> 74801e1f6982e32cb6e3516802f83fd06dd570cd
        <widget class="QGroupBox" name="groupBox_2">
         <property name="geometry">
          <rect>
@@ -1924,7 +1922,6 @@ QGroupBox QComboBox::down-arrow {
 
          </layout>
         </widget>
-
           <item row="4" column="1">
            <widget class="QLineEdit" name="leNom_6">
             <property name="text">
@@ -1985,7 +1982,6 @@ QGroupBox QComboBox::down-arrow {
           <string>Supprimer</string>
          </property>
         </widget>
-
         <widget class="QPushButton" name="btnModifier_3">
          <property name="geometry">
           <rect>
@@ -2048,7 +2044,6 @@ QGroupBox QComboBox::down-arrow {
     border-radius: 6px;
     padding: 5px 10px;
 }
-
 QPushButton:hover {
     background: #1B1B3A;
 }</string>
@@ -2068,7 +2063,6 @@ QPushButton:hover {
     border-radius: 6px;
     padding: 5px 10px;
 }
-
 QPushButton:hover {
     background: #1B1B3A;
 }</string>
@@ -2088,7 +2082,6 @@ QPushButton:hover {
     border-radius: 6px;
     padding: 5px 10px;
 }
-
 QPushButton:hover {
     background: #1B1B3A;
 }</string>
@@ -2223,17 +2216,8 @@ QScrollBar::handle:vertical:hover {
         </layout>
        </widget>
       </widget>
-
-
-
-
-
-
-      
-=======
        </widget>
       </widget>
->>>>>>> 74801e1f6982e32cb6e3516802f83fd06dd570cd
       <widget class="QWidget" name="page_employe">
        <widget class="QTabWidget" name="tabWidget">
         <property name="geometry">
