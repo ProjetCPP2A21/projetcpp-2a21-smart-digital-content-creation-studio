@@ -383,54 +383,6 @@ public:
 "        stop:1 #FB8C00\n"
 "    );\n"
 "\n"
-"                QTableWidget {\n"
-"    border: none;\n"
-"    border-radius: 10px;\n"
-"    background-color: #F9F6FF;                /* fond lavande p\303\242le */\n"
-"    color: #1E1A2E;                           /* texte anthracite profond */\n"
-"    gridline-color: #D3C0FF;                  /* lignes fines lavande */\n"
-"    alternate-background-color: #EFE9FF;      /* z\303\251brage doux */\n"
-"    selection-background-color: qlineargradient(\n"
-"        x1:0, y1:0, x2:1, y2:1,\n"
-"        stop:0 #8E24AA,\n"
-"        stop:1 #CE93D8\n"
-"    );                                        /* d\303\251grad\303\251 mauve clair */\n"
-"    selection-color: white;\n"
-"    font-family: \"Poppins\";\n"
-"    font-size: 10.5pt;\n"
-"}\n"
-"\n"
-"    QHeaderView::section {\n"
-"    back"
-                        "ground: qlineargradient(\n"
-"        x1:0, y1:0, x2:1, y2:1,\n"
-"        stop:0 #5E35B1,\n"
-"        stop:1 #AB47BC\n"
-"    );                                        /* d\303\251grad\303\251 violet pastel */\n"
-"    color: white;\n"
-"    font-weight: bold;\n"
-"    border: none;\n"
-"    padding: 8px;\n"
-"    border-radius: 4px;\n"
-"}\n"
-"    QTableCornerButton::section {\n"
-"    background: #6A0DAD;\n"
-"    border: none;\n"
-"}\n"
-"\n"
-"QScrollBar:vertical {\n"
-"    background: #F2E9FF;\n"
-"    width: 10px;\n"
-"    margin: 0px 0px 0px 0px;\n"
-"    border-radius: 5px;\n"
-"}\n"
-"QScrollBar::handle:vertical {\n"
-"    background: #B388FF;\n"
-"    border-radius: 5px;\n"
-"}\n"
-"QScrollBar::handle:vertical:hover {\n"
-"    background: #8E24AA;\n"
-"}\n"
 "}"));
         tableClients_6->setColumnCount(8);
 
@@ -480,7 +432,7 @@ public:
         btnSupprimer_3->setText(QCoreApplication::translate("GestionClient", "Supprimer", nullptr));
         leSearch_6->setPlaceholderText(QCoreApplication::translate("GestionClient", "Recherche...", nullptr));
         pushButton_9->setText(QCoreApplication::translate("GestionClient", "Trier", nullptr));
-        pushButton_7->setText(QCoreApplication::translate("GestionClient", "Export CSV", nullptr));
+        pushButton_7->setText(QCoreApplication::translate("GestionClient", "Export PDF", nullptr));
         pushButton_8->setText(QCoreApplication::translate("GestionClient", "Statistiques", nullptr));
         pushButton_6->setText(QCoreApplication::translate("GestionClient", "Clients Inactifs", nullptr));
         QTableWidgetItem *___qtablewidgetitem = tableClients_6->horizontalHeaderItem(0);

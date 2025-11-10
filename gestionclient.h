@@ -24,7 +24,7 @@ private slots:
     void on_pushButton_7_clicked();  // export CSV
     void on_pushButton_9_clicked();  // Trier
     void on_pushButton_8_clicked();  // stats
-    //void on_pushButton_6_clicked();  // PDF inactifs
+    void on_pushButton_6_clicked();  // PDF inactifs
 
 private:
     Ui::GestionClient *ui;

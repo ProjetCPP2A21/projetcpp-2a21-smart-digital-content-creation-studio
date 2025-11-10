@@ -319,32 +319,74 @@ void GestionClient::on_leSearch_6_textChanged(const QString &text)
 // EXPORT CSV
 void GestionClient::on_pushButton_7_clicked()
 {
-    QString filePath = QFileDialog::getSaveFileName(this, "Exporter les clients", "", "Fichiers CSV (*.csv)");
+    Client c;
+    QSqlQueryModel *model = c.afficher();
+
+    QString filePath = QFileDialog::getSaveFileName(this, "Exporter PDF", "", "PDF (*.pdf)");
     if (filePath.isEmpty()) return;
 
-    QFile file(filePath);
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        QMessageBox::critical(this, "Erreur", "Impossible d’ouvrir le fichier.");
-        return;
+    QPdfWriter pdf(filePath);
+    pdf.setPageSize(QPageSize(QPageSize::A4));
+    pdf.setResolution(300);
+
+    QPainter painter(&pdf);
+    painter.setRenderHint(QPainter::Antialiasing);
+
+    QColor mauve(147, 112, 219), orange(255, 140, 0), mauveLight(230, 220, 240), orangeLight(255, 245, 230);
+
+    // TITRE
+    painter.setFont(QFont("Arial", 18, QFont::Bold));
+    painter.setPen(orange);
+    painter.drawText(QRect(0, 200, pdf.width(), 100), Qt::AlignCenter, "Liste des clients");
+    painter.setPen(QPen(mauve, 3));
+    painter.drawLine(200, 350, pdf.width() - 200, 350);
+
+    // TABLEAU
+    int x = 100, y = 500, h = 90;
+    int w[] = {250, 300, 450, 250, 260, 170, 220}; // ✅ ID: 250, Tél: 250
+    QStringList headers = {"ID", "Nom", "Email", "Tél", "Secteur", "Pays", "Date"};
+
+    // EN-TÊTE
+    painter.setFont(QFont("Arial", 10, QFont::Bold));
+    painter.setBrush(mauve);
+    painter.drawRect(x, y, w[0]+w[1]+w[2]+w[3]+w[4]+w[5]+w[6], h);
+    painter.setPen(Qt::white);
+    int cx = x;
+    for (int i = 0; i < 7; i++) {
+        painter.drawText(QRect(cx, y, w[i], h), Qt::AlignCenter, headers[i]);
+        cx += w[i];
+    }
+    y += h;
+
+    // DONNÉES
+    painter.setFont(QFont("Arial", 9));
+    QDate today = QDate::currentDate();
+    for (int i = 0; i < model->rowCount(); ++i) {
+        bool inactif = model->data(model->index(i, 6)).toDate().daysTo(today) > 30;
+        QColor bg = inactif ? QColor(255, 220, 220) : (i % 2 == 0 ? mauveLight : orangeLight);
+
+        painter.fillRect(x, y, w[0]+w[1]+w[2]+w[3]+w[4]+w[5]+w[6], h, bg);
+        painter.setPen(inactif ? QColor(200, 0, 0) : Qt::black);
+
+        cx = x;
+        for (int j = 0; j < 7; j++) {
+            QString val = (j == 6) ? model->data(model->index(i, j)).toDate().toString("dd/MM/yyyy")
+                                   : model->data(model->index(i, j)).toString();
+            painter.drawText(QRect(cx + 5, y, w[j] - 10, h), Qt::AlignVCenter | Qt::AlignLeft, val);
+            cx += w[j];
+        }
+        y += h;
+        if (y > pdf.height() - 400) { pdf.newPage(); y = 200; }
     }
 
-    QTextStream out(&file);
-    out << "ID;Nom;Email;Téléphone;Secteur;Pays;Date d'inscription\n";
+    // FOOTER
+    painter.setFont(QFont("Arial", 9, -1, true));
+    painter.setPen(orange);
+    painter.drawText(100, pdf.height() - 150, "Généré le : " + QDate::currentDate().toString("dd/MM/yyyy"));
 
-    int rowCount = ui->tableClients_6->rowCount();
-    int colCount = ui->tableClients_6->columnCount();
-
-    for (int i = 0; i < rowCount; ++i) {
-        QStringList rowData;
-        for (int j = 1; j < colCount; ++j)
-            rowData << (ui->tableClients_6->item(i, j) ? ui->tableClients_6->item(i, j)->text() : "");
-        out << rowData.join(";") << "\n";
-    }
-
-    file.close();
-    QMessageBox::information(this, "Succès", " Exportation terminée avec succès !");
+    painter.end();
+    QMessageBox::information(this, "PDF", "✅ Exporté !");
 }
-
 
 
 
@@ -524,4 +566,144 @@ void GestionClient::on_pushButton_8_clicked()
     layout->addWidget(chartView);
     dialog->setLayout(layout);
     dialog->exec();
+}
+
+
+
+
+
+
+//CLIENTS INACTIFS
+#include <QPdfWriter>
+#include <QPainter>
+#include <QFileDialog>
+#include <QMessageBox>
+#include <QDate>
+#include <QSqlQueryModel>
+#include <QPageSize>
+#include <QColor>
+
+void GestionClient::on_pushButton_6_clicked()
+{
+    Client c;
+    QSqlQueryModel *model = c.afficher();
+    QDate today = QDate::currentDate();
+
+    QString filePath = QFileDialog::getSaveFileName(this, "Exporter PDF des clients inactifs", "", "Fichiers PDF (*.pdf)");
+    if (filePath.isEmpty()) return;
+
+    QPdfWriter pdf(filePath);
+    pdf.setPageSize(QPageSize(QPageSize::A4));
+    pdf.setResolution(300);
+
+    QPainter painter(&pdf);
+    painter.setRenderHint(QPainter::Antialiasing);
+
+    // === COULEURS DU THÈME ===
+    QColor mauveHeader(147, 112, 219);      // Mauve pour l'en-tête
+    QColor orangeAccent(255, 140, 0);       // Orange pour les accents
+    QColor mauveLight(230, 220, 240);       // Mauve clair pour les lignes alternées
+    QColor orangeLight(255, 245, 230);      // Orange clair
+
+    // === TITRE ===
+    QFont titleFont("Arial", 18, QFont::Bold);
+    painter.setFont(titleFont);
+    painter.setPen(orangeAccent);
+    painter.drawText(QRect(0, 200, pdf.width(), 100), Qt::AlignCenter, "Liste des clients inactifs (> 30 jours)");
+
+    painter.setPen(QPen(mauveHeader, 3));
+    painter.drawLine(200, 350, pdf.width() - 200, 350);
+
+    // === TABLEAU ===
+    int startX = 200;
+    int y = 500;
+    int rowHeight = 100;
+
+    int colIdWidth = 180;
+    int colNomWidth = 450;
+    int colEmailWidth = 700;
+    int colDateWidth = 570;  // ✅ Agrandi pour "Date d'inscription"
+
+    // === EN-TÊTES ===
+    QFont headerFont("Arial", 12, QFont::Bold);
+    painter.setFont(headerFont);
+    painter.setPen(Qt::white);
+    painter.setBrush(mauveHeader);  // ✅ Fond mauve
+
+    // Fond pour l'en-tête
+    painter.drawRect(startX, y, colIdWidth + colNomWidth + colEmailWidth + colDateWidth, rowHeight);
+
+    painter.setBrush(Qt::NoBrush);
+    painter.setPen(QPen(mauveHeader, 2));
+
+    // Bordures de l'en-tête
+    painter.drawRect(startX, y, colIdWidth, rowHeight);
+    painter.drawRect(startX + colIdWidth, y, colNomWidth, rowHeight);
+    painter.drawRect(startX + colIdWidth + colNomWidth, y, colEmailWidth, rowHeight);
+    painter.drawRect(startX + colIdWidth + colNomWidth + colEmailWidth, y, colDateWidth, rowHeight);
+
+    // Texte des en-têtes (centré verticalement)
+    painter.setPen(Qt::white);
+    painter.drawText(QRect(startX, y, colIdWidth, rowHeight), Qt::AlignCenter, "ID");
+    painter.drawText(QRect(startX + colIdWidth, y, colNomWidth, rowHeight), Qt::AlignCenter, "Nom");
+    painter.drawText(QRect(startX + colIdWidth + colNomWidth, y, colEmailWidth, rowHeight), Qt::AlignCenter, "Email");
+    painter.drawText(QRect(startX + colIdWidth + colNomWidth + colEmailWidth, y, colDateWidth, rowHeight), Qt::AlignCenter, "Date d'inscription");
+
+    // === DONNÉES ===
+    QFont bodyFont("Arial", 10);
+    painter.setFont(bodyFont);
+    y += rowHeight;
+
+    int ligne = 0;
+
+    for (int i = 0; i < model->rowCount(); ++i) {
+        QDate date = model->data(model->index(i, 6)).toDate();
+
+        if (date.daysTo(today) > 30) {
+            QString id = model->data(model->index(i, 0)).toString();
+            QString nom = model->data(model->index(i, 1)).toString();
+            QString email = model->data(model->index(i, 2)).toString();
+            QString dateStr = date.toString("dd/MM/yyyy");
+
+            // ✅ Fond alterné avec les couleurs du thème
+            if (ligne % 2 == 0) {
+                painter.fillRect(startX, y, colIdWidth + colNomWidth + colEmailWidth + colDateWidth, rowHeight, mauveLight);
+            } else {
+                painter.fillRect(startX, y, colIdWidth + colNomWidth + colEmailWidth + colDateWidth, rowHeight, orangeLight);
+            }
+
+            // Bordures
+            painter.setPen(QPen(mauveHeader, 1));
+            painter.drawRect(startX, y, colIdWidth, rowHeight);
+            painter.drawRect(startX + colIdWidth, y, colNomWidth, rowHeight);
+            painter.drawRect(startX + colIdWidth + colNomWidth, y, colEmailWidth, rowHeight);
+            painter.drawRect(startX + colIdWidth + colNomWidth + colEmailWidth, y, colDateWidth, rowHeight);
+
+            // Texte centré verticalement dans chaque cellule
+            painter.setPen(Qt::black);
+            painter.drawText(QRect(startX + 20, y, colIdWidth - 40, rowHeight), Qt::AlignVCenter | Qt::AlignLeft, id);
+            painter.drawText(QRect(startX + colIdWidth + 20, y, colNomWidth - 40, rowHeight), Qt::AlignVCenter | Qt::AlignLeft, nom);
+            painter.drawText(QRect(startX + colIdWidth + colNomWidth + 20, y, colEmailWidth - 40, rowHeight), Qt::AlignVCenter | Qt::AlignLeft, email);
+            painter.drawText(QRect(startX + colIdWidth + colNomWidth + colEmailWidth + 20, y, colDateWidth - 40, rowHeight), Qt::AlignVCenter | Qt::AlignLeft, dateStr);
+
+            y += rowHeight;
+            ligne++;
+
+            // Nouvelle page si nécessaire
+            if (y > pdf.height() - 300) {
+                pdf.newPage();
+                y = 200;
+            }
+        }
+    }
+
+    // === Date de génération ===
+    QFont footerFont("Arial", 9);
+    footerFont.setItalic(true);
+    painter.setFont(footerFont);
+    painter.setPen(orangeAccent);
+    painter.drawText(200, pdf.height() - 150, "Généré le : " + QDate::currentDate().toString("dd/MM/yyyy"));
+
+    painter.end();
+    QMessageBox::information(this, "PDF", "✅ PDF généré avec succès !");
 }

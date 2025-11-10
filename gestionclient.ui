@@ -443,7 +443,7 @@ QPushButton:hover {
 }</string>
         </property>
         <property name="text">
-         <string>Export CSV</string>
+         <string>Export PDF</string>
         </property>
        </widget>
       </item>
