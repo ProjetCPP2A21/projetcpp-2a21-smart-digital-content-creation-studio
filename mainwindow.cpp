@@ -1,4 +1,5 @@
 #include "client.h"
+#include "ressource.h"
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QSqlQueryModel>
@@ -19,8 +20,6 @@
 #include <QHBoxLayout>
 #include <QDebug>
 
-
-
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <QPixmap>
@@ -32,27 +31,73 @@
 #include <QRegularExpression>
 #include "qsqlerror.h"
 
+#include <QMediaPlayer>
+#include <QVideoWidget>
+#include <QAudioOutput>
+#include <QSqlRecord>
+#include <QPdfWriter>
+#include <QPainter>
+
+#include <utility>
+
+// === SPONSOR ===
+#include "sponsor.h"
+#include <QSortFilterProxyModel>
+#include <QRegularExpression>
+
+Ressource R; // objet global temporaire
+
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
 
-    //  Style uniforme pour tous les boutons
+//ressource
+    setUpInterface();
+
+    ui->RessourceTab->setModel(R.afficher());
+
+    connect(ui->AjoutBut, &QPushButton::clicked, this, &MainWindow::allerAjoutPage);
+    connect(ui->RetourneBut, &QPushButton::clicked, this, &MainWindow::setUpInterface);
+    connect(ui->StatsBut, &QPushButton::clicked, this, &MainWindow::allerPageStats);
+
+    // ================= SPONSOR MODULE INITIALISATION =================
+    proxySponsor = new QSortFilterProxyModel(this);
+    proxySponsor->setFilterCaseSensitivity(Qt::CaseInsensitive);
+    proxySponsor->setFilterKeyColumn(-1); // search all columns
+
+    actualiserSponsorTable();
+
+    // Search sponsor
+    connect(ui->lineEdit_searchGlobal_2, &QLineEdit::textChanged, this, &MainWindow::on_lineEdit_searchGlobal_2_textChanged);
+
+    // Click table row
+    connect(ui->tableView_2, &QTableView::clicked, this, &MainWindow::on_tableView_2_clicked);
+
+
+
+    // Initialisation des variables
+    isModifyingProjet = false;
+    currentModifyClient = "";
+
+    refreshClientTable();
+    setupProjetTable();
+    refreshProjetTable();
+
+    // Style uniforme
     this->setStyleSheet("QPushButton { background:#2A2E63; color:#EDEAF9; border:1px solid #4B4F87; border-radius:8px; padding:6px 12px; }"
                         "QPushButton:hover { background:#3A3F7A; }"
                         "QPushButton:pressed { background:#1B1D3F; }");
 
-
-    // === Connexions des boutons de navigation ===
+    // Connexions des boutons de navigation
     connect(ui->pushButton_projet, &QPushButton::clicked, this, [=]() {
         ui->stackedWidget->setCurrentWidget(ui->page_projet);
         setActiveButton(ui->pushButton_projet);
+        refreshProjetTable();
     });
-    connect(ui->pushButton_client, &QPushButton::clicked, this, [=]() {
-        ui->stackedWidget->setCurrentWidget(ui->page_client);
-        setActiveButton(ui->pushButton_client);
-    });
+    connect(ui->pushButton_client, &QPushButton::clicked, this, &MainWindow::on_pushButton_client_clicked);
     connect(ui->pushButton_employe, &QPushButton::clicked, this, [=]() {
         ui->stackedWidget->setCurrentWidget(ui->page_employe);
         setActiveButton(ui->pushButton_employe);
@@ -73,7 +118,7 @@ MainWindow::MainWindow(QWidget *parent)
         ui->stackedWidget_principale->setCurrentWidget(ui->page);
     });
 
-    // === Gestion du login ===
+    // Gestion du login
     connect(ui->lineEdit_mdp_login, &QLineEdit::returnPressed, this, [=]() {
         ui->stackedWidget_principale->setCurrentIndex(1);
     });
@@ -87,7 +132,7 @@ MainWindow::MainWindow(QWidget *parent)
         ui->stackedWidget_login->setCurrentWidget(ui->page_login);
     });
 
-    // === Logos ===
+    // Logos
     QPixmap pix(":/logo.png");
     if (!pix.isNull())
         ui->logo->setPixmap(pix.scaled(ui->logo->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
@@ -98,28 +143,23 @@ MainWindow::MainWindow(QWidget *parent)
         ui->background->setPixmap(pix_bg.scaled(ui->background->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
     ui->background->setScaledContents(true);
 
-//################             Gestion_employes           ###################///////////
-
+    // Gestion employés
     ui->tableWidgetEmployes->setEditTriggers(QAbstractItemView::DoubleClicked | QAbstractItemView::EditKeyPressed);
-
-    //Connecter le signal "itemChanged" au slot
     connect(ui->tableWidgetEmployes, &QTableWidget::itemChanged, this, &MainWindow::onItemChanged);
-
-    // Connexions boutons CRUD
     connect(ui->Button_ajouter, &QPushButton::clicked, this, &MainWindow::ajouterEmploye);
     connect(ui->Button_supprimer_2, &QPushButton::clicked, this, &MainWindow::supprimerEmploye);
     connect(ui->Button_rechercher, &QPushButton::clicked, this, &MainWindow::rechercherEmploye);
     connect(ui->Button_export, &QPushButton::clicked, this, &MainWindow::exportEmployes);
 
-    // Configuration du tableau
+    // Configuration tableau employés
     ui->tableWidgetEmployes->setColumnCount(5);
     QStringList headers = {"ID", "Nom", "Prénom", "Email", "Poste"};
     ui->tableWidgetEmployes->setHorizontalHeaderLabels(headers);
     ui->tableWidgetEmployes->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     ui->tableWidgetEmployes->horizontalHeader()->setStretchLastSection(false);
 
-    // Affichage initial depuis DB
-    Employe tempEmp;  // Instance temporaire pour appeler les méthodes DB
+    // Affichage initial employés
+    Employe tempEmp;
     QSqlQueryModel *initialModel = tempEmp.afficher();
     afficherEmployes(initialModel);
     delete initialModel;
@@ -127,35 +167,33 @@ MainWindow::MainWindow(QWidget *parent)
     QPushButton *buttonTri = ui->groupBox_recherche->findChild<QPushButton*>("Button_tri");
     if (buttonTri) {
         connect(buttonTri, &QPushButton::clicked, this, &MainWindow::trierParPoste);
-        qDebug() << "Button_tri connecté avec succès.";
-    } else {
-        qDebug() << "Erreur : Button_tri non trouvé dans groupBox_recherche !";
-        //ui->statusbar->showMessage("Erreur : Bouton de tri non trouvé !");
     }
 
-    afficherStatistiques();  // Appel initial des stats depuis DB
+    afficherStatistiques();
 
     QPixmap pix2(":/banner.png");
-    if (pix2.isNull()) {
-        qDebug() << "Impossible de charger l'image !";
-    } else {
-        ui->banner->setPixmap(pix2.scaled(
-            ui->banner->size(),
-            Qt::KeepAspectRatio,
-            Qt::SmoothTransformation
-            ));
+    if (!pix2.isNull()) {
+        ui->banner->setPixmap(pix2.scaled(ui->banner->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
     }
     ui->banner->setScaledContents(true);
 
     QLineEdit *lineEditRecherche = ui->groupBox_recherche->findChild<QLineEdit*>("lineEdit_recherche");
     if (lineEditRecherche) {
         lineEditRecherche->setPlaceholderText("ID employé");
-        qDebug() << "Placeholder ajouté à lineEdit_recherche.";
-    } else {
-        qDebug() << "Erreur : lineEdit_recherche non trouvé dans groupBox_recherche !";
-        //ui->statusbar->showMessage("Erreur : Champ de recherche non trouvé !");
     }
 
+    // Connexions pour les boutons projets
+    connect(ui->btnAjouterProjet, &QPushButton::clicked, this, &MainWindow::on_btnAjouterProjet_clicked);
+    connect(ui->btnModifierProjet, &QPushButton::clicked, this, &MainWindow::on_btnModifierProjet_clicked);
+    connect(ui->btnSupprimerProjet, &QPushButton::clicked, this, &MainWindow::on_btnSupprimerProjet_clicked);
+    connect(ui->btnTriBudgetProjet, &QPushButton::clicked, this, &MainWindow::on_btnTriBudgetProjet_clicked);
+    connect(ui->btnTriDateProjet, &QPushButton::clicked, this, &MainWindow::on_btnTriDateProjet_clicked);
+    connect(ui->btnRafraichirProjet, &QPushButton::clicked, this, &MainWindow::on_btnRafraichirProjet_clicked);
+    connect(ui->btnAnnulerModifProjet, &QPushButton::clicked, this, &MainWindow::on_btnAnnulerModifProjet_clicked);
+    connect(ui->tableWidgetProjets, &QTableWidget::cellClicked, this, &MainWindow::on_tableProjets_cellClicked);
+
+    // Masquer le bouton annuler modification au démarrage
+    ui->btnAnnulerModifProjet->setVisible(false);
 }
 
 MainWindow::~MainWindow()
@@ -165,7 +203,6 @@ MainWindow::~MainWindow()
 
 void MainWindow::setActiveButton(QPushButton *btn)
 {
-    //  Réinitialiser sans écraser le style global
     ui->pushButton_projet->setStyleSheet("");
     ui->pushButton_client->setStyleSheet("");
     ui->pushButton_employe->setStyleSheet("");
@@ -173,12 +210,10 @@ void MainWindow::setActiveButton(QPushButton *btn)
     ui->pushButton_feedback->setStyleSheet("");
     ui->pushButton_categorie->setStyleSheet("");
 
-    //  Bouton actif (orange)
     btn->setStyleSheet("background-color:#FF8C00; color:black; font-weight:bold;");
 }
 
-
-//#######################          gestion_employes            #####################//
+// Gestion employés
 void MainWindow::ajouterEmploye() {
     QString nom = ui->lineEdit_nom->text();
     QString prenom = ui->lineEdit_prenom->text();
@@ -188,25 +223,17 @@ void MainWindow::ajouterEmploye() {
     QString questionSecrete = ui->comboBox_q->currentText();
     QString reponseSecrete = ui->lineEdit_reponse->text();
 
-    // Vérifier les champs obligatoires
-    if (nom.isEmpty() || prenom.isEmpty() || email.isEmpty() || mdp. isEmpty() || reponseSecrete. isEmpty()) {
-        QMessageBox::warning(this, "Champs manquants",
-                             "Veuillez remplir tous les champs");
+    if (nom.isEmpty() || prenom.isEmpty() || email.isEmpty() || mdp.isEmpty() || reponseSecrete.isEmpty()) {
+        QMessageBox::warning(this, "Champs manquants", "Veuillez remplir tous les champs");
         return;
     }
 
-    // Vérifier la validité de l'email
-    QRegularExpression emailRegex(
-        "^[A-Za-z0-9._%+-]+@(gmail\\.com|yahoo\\.fr|outlook\\.com)$",
-        QRegularExpression::CaseInsensitiveOption);
-
+    QRegularExpression emailRegex("^[A-Za-z0-9._%+-]+@(gmail\\.com|yahoo\\.fr|outlook\\.com)$", QRegularExpression::CaseInsensitiveOption);
     if (!emailRegex.match(email).hasMatch()) {
-        QMessageBox::warning(this, "Email invalide",
-                             "Veuillez entrer une adresse email valide");
+        QMessageBox::warning(this, "Email invalide", "Veuillez entrer une adresse email valide");
         return;
     }
 
-    // Créer et remplir l'objet Employe
     Employe emp;
     emp.setNom(nom);
     emp.setPrenom(prenom);
@@ -216,10 +243,8 @@ void MainWindow::ajouterEmploye() {
     emp.setQuestionSecrete(questionSecrete);
     emp.setReponseSecrete(reponseSecrete);
 
-    // Tenter l'ajout
     if (emp.ajouter()) {
         QMessageBox::information(this, "Succès", "Employé ajouté avec succès !");
-
         QSqlQueryModel *model = emp.afficher();
         afficherEmployes(model);
         delete model;
@@ -235,100 +260,63 @@ void MainWindow::ajouterEmploye() {
     }
 }
 
-  // fonction modifier
 void MainWindow::onItemChanged(QTableWidgetItem *item) {
-    // Vérif: Si pas de tableau, on sort
     QTableWidget *tableWidget = ui->tableWidgetEmployes;
-    if (!tableWidget || !item) {
-        return;
-    }
+    if (!tableWidget || !item) return;
 
-    int row = item->row();  // Ligne modifiée
-    int col = item->column();  // Colonne modifiée
+    int row = item->row();
+    int col = item->column();
 
-    // Récup l'ID de la ligne ( colonne 0 non modifiable)
     QTableWidgetItem *idItem = tableWidget->item(row, 0);
-    if (!idItem) {
-        //ui->statusbar->showMessage("Erreur : Impossible de récupérer l'ID !");
-        return;
-    }
+    if (!idItem) return;
+
     int id_employe = idItem->text().toInt();
-    if (id_employe <= 0) {
-        //ui->statusbar->showMessage("ID invalide pour la modification !");
-        return;
-    }
+    if (id_employe <= 0) return;
 
-    // Nouvelle valeur tapée par l'utilisateur
-    QString newValue = item->text().trimmed();  // Enlève les espaces inutiles
-    if (newValue.isEmpty()) {
-        //ui->statusbar->showMessage("Valeur vide non autorisée !");
-        return;  // Empêche les champs vides
-    }
+    QString newValue = item->text().trimmed();
+    if (newValue.isEmpty()) return;
 
-    // Détermine QUEL champ de la DB modifier (selon la colonne)
-    QString fieldName;  // Nom de la colonne en DB
+    QString fieldName;
     switch (col) {
-    case 1: fieldName = "nom"; break;      // Colonne 1 = Nom
-    case 2: fieldName = "prenom"; break;   // Colonne 2 = Prénom
-    case 3: fieldName = "email"; break;    // Colonne 3 = Email
-    case 4: fieldName = "poste"; break;    // Colonne 4 = Poste
-    default:
-        //ui->statusbar->showMessage("Colonne non modifiable ! (ex. ID)");
-        return;  // Protège l'ID (colonne 0)
+    case 1: fieldName = "nom"; break;
+    case 2: fieldName = "prenom"; break;
+    case 3: fieldName = "email"; break;
+    case 4: fieldName = "poste"; break;
+    default: return;
     }
 
-    // MISE À JOUR EN BASE DE DONNÉES
     QSqlQuery query;
-    // Requête dynamique : UPDATE employe SET [champ] = [nouvelle_valeur] WHERE id = [id]
     query.prepare(QString("UPDATE employe SET %1 = :newValue WHERE id_employe = :id").arg(fieldName));
-    query.bindValue(":newValue", newValue);  // Lie la nouvelle valeur
-    query.bindValue(":id", id_employe);      // Lie l'ID
+    query.bindValue(":newValue", newValue);
+    query.bindValue(":id", id_employe);
 
-    if (query.exec()) {  // Exécute la requête
-        if (query.numRowsAffected() > 0) {  // Vérifie si une ligne a été modifiée
-            //ui->statusbar->showMessage(QString("Employé %1 (%2) mis à jour : %3").arg(id_employe).arg(fieldName).arg(newValue));
-            qDebug() << "Succès DB : ID" << id_employe << "->" << fieldName << "=" << newValue;
-
+    if (query.exec()) {
+        if (query.numRowsAffected() > 0) {
             afficherStatistiques();
-        } else {
-            //ui->statusbar->showMessage("Aucune modification (ID introuvable ?)");
         }
     } else {
-        // Erreur DB
-        qDebug() << "Erreur UPDATE :" << query.lastError().text();
-        //ui->statusbar->showMessage("Erreur DB : Modification annulée !");
-        QMessageBox::warning(this, "Erreur", "Impossible de sauvegarder. Vérifiez la console.");
-
+        QMessageBox::warning(this, "Erreur", "Impossible de sauvegarder.");
     }
 }
 
-// Supprimer
 void MainWindow::supprimerEmploye() {
     bool ok;
-    int id_employe = ui->lineEdit_id_supp->text().toInt(&ok); // Vérifie la conversion en entier
-    if (!ok || id_employe <= 0) {
-        //ui->statusbar->showMessage("Erreur : Veuillez entrer un ID valide !");
-        return;
-    }
+    int id_employe = ui->lineEdit_id_supp->text().toInt(&ok);
+    if (!ok || id_employe <= 0) return;
 
     Employe emp;
     if (emp.supprimer(id_employe)) {
-        ui->lineEdit_id_supp->clear(); // Vider le champ après suppression
-        //ui->statusbar->showMessage("Employé supprimé avec succès !");
-        // Rafraîchir affichage
+        ui->lineEdit_id_supp->clear();
         QSqlQueryModel *model = emp.afficher();
         afficherEmployes(model);
         delete model;
         afficherStatistiques();
-    } else {
-        //ui->statusbar->showMessage("Employé introuvable ou erreur suppression !");
     }
 }
 
 void MainWindow::rechercherEmploye() {
     QString critere = ui->lineEdit_recherche->text();
 
-    // Vérifier si la saisie est vide
     if (critere.isEmpty()) {
         Employe emp;
         QSqlQueryModel *model = emp.afficher();
@@ -346,27 +334,20 @@ void MainWindow::rechercherEmploye() {
 void MainWindow::afficherEmployes(QSqlQueryModel *model) {
     ui->tableWidgetEmployes->setRowCount(0);
 
-    if (!model) {
-        qDebug() << "Modèle nul pour affichage !";
-        return;
-    }
+    if (!model) return;
 
     for (int i = 0; i < model->rowCount(); ++i) {
         ui->tableWidgetEmployes->insertRow(i);
-
         for (int j = 0; j < 5 && j < model->columnCount(); ++j) {
             QVariant data = model->data(model->index(i, j));
             ui->tableWidgetEmployes->setItem(i, j, new QTableWidgetItem(data.toString()));
         }
     }
-
-    qDebug() << "Affichage de" << model->rowCount() << "employés.";
 }
 
 void MainWindow::trierParPoste() {
     Employe emp;
     QSqlQueryModel *model = new QSqlQueryModel();
-    // Query avec ORDER BY
     model->setQuery("SELECT id_employe, nom, prenom, email, poste FROM employe ORDER BY poste");
     afficherEmployes(model);
     delete model;
@@ -374,16 +355,8 @@ void MainWindow::trierParPoste() {
 
 void MainWindow::exportEmployes()
 {
-    QString fileName = QFileDialog::getSaveFileName(
-        this,
-        "Exporter en Excel",
-        "employes.csv",
-        "Fichiers CSV (*.csv);;Tous les fichiers (*.*)"
-        );
-
-    if (fileName.isEmpty()) {
-        return;
-    }
+    QString fileName = QFileDialog::getSaveFileName(this, "Exporter en Excel", "employes.csv", "Fichiers CSV (*.csv);;Tous les fichiers (*.*)");
+    if (fileName.isEmpty()) return;
 
     QFile file(fileName);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
@@ -392,11 +365,8 @@ void MainWindow::exportEmployes()
     }
 
     QTextStream out(&file);
-
-    // les en-têtes
     out << "\"ID\";\"Nom\";\"Prénom\";\"Email\";\"Poste\"\n";
 
-    // les données depuis DB
     QSqlQuery query("SELECT id_employe, nom, prenom, email, poste FROM employe");
     if (query.exec()) {
         while (query.next()) {
@@ -406,24 +376,16 @@ void MainWindow::exportEmployes()
                 << "\"" << query.value(3).toString() << "\";"
                 << "\"" << query.value(4).toString() << "\"\n";
         }
-    } else {
-        qDebug() << "Erreur query export:" << query.lastError().text();
     }
 
     file.close();
     QMessageBox::information(this, "Succès", "Liste exportée avec succès !");
 }
 
-
 void MainWindow::afficherStatistiques()
 {
     QSqlQuery query;
-
-    if (!query.exec("SELECT poste, COUNT(*) as count FROM employe GROUP BY poste")) {
-        qDebug() << "Erreur query stats:" << query.lastError().text();
-        //ui->statusbar->showMessage("Erreur lors du calcul des stats !");
-        return;
-    }
+    if (!query.exec("SELECT poste, COUNT(*) as count FROM employe GROUP BY poste")) return;
 
     QMap<QString, int> statsPoste;
     while (query.next()) {
@@ -434,10 +396,7 @@ void MainWindow::afficherStatistiques()
         }
     }
 
-    if (statsPoste.isEmpty()) {
-        //ui->statusbar->showMessage("Aucune donnée pour les statistiques !");
-        return;
-    }
+    if (statsPoste.isEmpty()) return;
 
     if (ui->statistiques->layout()) {
         QLayout *oldLayout = ui->statistiques->layout();
@@ -449,17 +408,8 @@ void MainWindow::afficherStatistiques()
         delete oldLayout;
     }
 
-
     QPieSeries *series = new QPieSeries();
-
-    QList<QColor> palette = {
-        QColor("#FF7F32"),
-        QColor("#FFAA33"),
-        QColor("#1A237E"),
-        QColor("#512DA8"),
-        QColor("#7E57C2"),
-        QColor("#3949AB")
-    };
+    QList<QColor> palette = {QColor("#FF7F32"), QColor("#FFAA33"), QColor("#1A237E"), QColor("#512DA8"), QColor("#7E57C2"), QColor("#3949AB")};
 
     QList<QPair<QString, QColor>> legendItems;
     int colorIndex = 0;
@@ -467,7 +417,7 @@ void MainWindow::afficherStatistiques()
         QPieSlice *slice = series->append(it.key(), it.value());
         QColor color = palette[colorIndex % palette.size()];
         slice->setPen(QPen(Qt::white, 1));
-        slice->setBrush(color); // appliquer couleur
+        slice->setBrush(color);
         legendItems.append(qMakePair(it.key(), color));
         colorIndex++;
     }
@@ -475,30 +425,25 @@ void MainWindow::afficherStatistiques()
     QChart *chart = new QChart();
     chart->addSeries(series);
     chart->setAnimationOptions(QChart::SeriesAnimations);
-    chart->legend()->setVisible(false); // Masquer la légende par défaut
+    chart->legend()->setVisible(false);
 
-    // Définir les labels des slices comme pourcentages (après addSeries pour calculer percentage())
     for (QPieSlice *slice : series->slices()) {
         slice->setLabel(QString("%1%").arg(qRound(slice->percentage() * 100)));
         slice->setLabelVisible(true);
-        slice->setLabelPosition(QPieSlice::LabelOutside); // Positionner les labels à l'extérieur avec lignes
+        slice->setLabelPosition(QPieSlice::LabelOutside);
     }
 
     QChartView *chartView = new QChartView(chart);
     chartView->setRenderHint(QPainter::Antialiasing);
     chartView->setMinimumSize(400, 300);
 
-    // Titre séparé
     QLabel *titleLabel = new QLabel("Répartition des employés par poste");
     titleLabel->setAlignment(Qt::AlignCenter);
     titleLabel->setStyleSheet("font-weight: bold; font-size: 14px;");
 
-    // Créer une légende personnalisée avec carrés colorés et textes noirs
     QString legendHtml;
     for (const auto &item : legendItems) {
-        if (!legendHtml.isEmpty()) {
-            legendHtml += " &nbsp;&nbsp; ";
-        }
+        if (!legendHtml.isEmpty()) legendHtml += " &nbsp;&nbsp; ";
         legendHtml += QString("<span style='color:%1; font-size: 16px;'>■</span> %2").arg(item.second.name(), item.first);
     }
     QLabel *legendLabel = new QLabel(legendHtml);
@@ -509,26 +454,13 @@ void MainWindow::afficherStatistiques()
     layout->addWidget(legendLabel);
     layout->addWidget(chartView);
     ui->statistiques->setLayout(layout);
-    //ui->statusbar->showMessage(QString("Statistiques affichées : %1 postes uniques.").arg(statsPoste.size()));
 }
 
-
-
-
-
-
-
-
-//Gestion_Client//Selima
-
+// Gestion Clients
 void MainWindow::refreshClientTable()
 {
     Client c;
     QSqlQueryModel *model = c.afficher();
-    qDebug() << "⚙️ Requête exécutée :" << model->query().lastQuery();
-    qDebug() << "⚙️ Erreur SQL :" << model->query().lastError().text();
-    qDebug() << "⚙️ Nombre de lignes :" << model->rowCount();
-
     ui->tableClients_6->setRowCount(0);
     ui->tableClients_6->setColumnCount(8);
 
@@ -550,20 +482,17 @@ void MainWindow::refreshClientTable()
 
         QLabel *bubble = new QLabel();
         bubble->setFixedSize(14, 14);
-        bubble->setStyleSheet(QString("border-radius:7px; background-color:%1;")
-                                  .arg(inactif ? "#E53935" : "#43A047"));
+        bubble->setStyleSheet(QString("border-radius:7px; background-color:%1;").arg(inactif ? "#E53935" : "#43A047"));
         layout->addWidget(bubble);
         ui->tableClients_6->setCellWidget(i, 0, cellWidget);
 
         for (int j = 0; j < model->columnCount(); j++) {
             QVariant data = model->data(model->index(i, j));
             QString value;
-
             if (data.typeId() == QMetaType::QDate || data.typeId() == QMetaType::QDateTime)
                 value = data.toDate().toString("yyyy-MM-dd");
             else
                 value = data.toString();
-
             ui->tableClients_6->setItem(i, j + 1, new QTableWidgetItem(value));
         }
     }
@@ -572,8 +501,6 @@ void MainWindow::refreshClientTable()
     ui->tableClients_6->horizontalHeader()->setStretchLastSection(true);
 }
 
-
-//LE CLIENT S'AFFICHE QUAND ON CLIQUE SUR SON ID
 void MainWindow::on_tableClients_6_cellClicked(int row, int column)
 {
     Q_UNUSED(column);
@@ -586,8 +513,6 @@ void MainWindow::on_tableClients_6_cellClicked(int row, int column)
     ui->deDate_6->setDate(QDate::fromString(ui->tableClients_6->item(row, 7)->text(), "yyyy-MM-dd"));
 }
 
-
-//Ajouter client
 void MainWindow::on_btnAjouter_3_clicked()
 {
     QString idStr = ui->leId_6->text().trimmed();
@@ -598,7 +523,6 @@ void MainWindow::on_btnAjouter_3_clicked()
     QString pays = ui->cbPays_6->currentText();
     QDate dateInscription = ui->deDate_6->date();
 
-    // --- Contrôles de saisie ---
     QRegularExpression regexId("^[0-9]{8}$");
     QRegularExpression regexTel("^[0-9]{8}$");
     QRegularExpression regexNom("^[A-Za-zÀ-ÖØ-öø-ÿ\\s]+$");
@@ -613,7 +537,7 @@ void MainWindow::on_btnAjouter_3_clicked()
         return;
     }
     if (!regexEmail.match(email).hasMatch()) {
-        QMessageBox::warning(this, "Erreur", "Veuillez saisir une adresse e-mail valide (ex: nom@mail.com).");
+        QMessageBox::warning(this, "Erreur", "Veuillez saisir une adresse e-mail valide.");
         return;
     }
     if (!regexTel.match(tel).hasMatch()) {
@@ -622,8 +546,6 @@ void MainWindow::on_btnAjouter_3_clicked()
     }
 
     int id = idStr.toInt();
-
-    // Vérification doublon
     QSqlQuery check;
     check.prepare("SELECT COUNT(*) FROM CLIENTT WHERE LOWER(NOM)=LOWER(:nom) OR LOWER(EMAIL)=LOWER(:email) OR TELEPHONE=:tel");
     check.bindValue(":nom", nom);
@@ -639,7 +561,6 @@ void MainWindow::on_btnAjouter_3_clicked()
         return;
     }
 
-    // Ajout du client
     Client c(id, nom, email, tel, secteur, pays, dateInscription);
     if (c.ajouter()) {
         QMessageBox::information(this, "Succès", "Client ajouté avec succès !");
@@ -649,13 +570,6 @@ void MainWindow::on_btnAjouter_3_clicked()
     }
 }
 
-
-
-
-
-
-
-//Modifier client
 void MainWindow::on_btnModifier_3_clicked()
 {
     QString idStr = ui->leId_6->text().trimmed();
@@ -666,7 +580,6 @@ void MainWindow::on_btnModifier_3_clicked()
     QString pays = ui->cbPays_6->currentText();
     QDate dateInscription = ui->deDate_6->date();
 
-    // --- Contrôles de saisie ---
     QRegularExpression regexId("^[0-9]{8}$");
     QRegularExpression regexTel("^[0-9]{8}$");
     QRegularExpression regexNom("^[A-Za-zÀ-ÖØ-öø-ÿ\\s]+$");
@@ -681,7 +594,7 @@ void MainWindow::on_btnModifier_3_clicked()
         return;
     }
     if (!regexEmail.match(email).hasMatch()) {
-        QMessageBox::warning(this, "Erreur", "Veuillez saisir une adresse e-mail valide (ex: nom@mail.com).");
+        QMessageBox::warning(this, "Erreur", "Veuillez saisir une adresse e-mail valide.");
         return;
     }
     if (!regexTel.match(tel).hasMatch()) {
@@ -690,8 +603,6 @@ void MainWindow::on_btnModifier_3_clicked()
     }
 
     int id = idStr.toInt();
-
-    // Vérification doublon
     QSqlQuery check;
     check.prepare("SELECT COUNT(*) FROM CLIENTT WHERE (LOWER(NOM)=LOWER(:nom) OR LOWER(EMAIL)=LOWER(:email) OR TELEPHONE=:tel) AND IDCLIENT!=:id");
     check.bindValue(":nom", nom);
@@ -708,7 +619,6 @@ void MainWindow::on_btnModifier_3_clicked()
         return;
     }
 
-    // Modification
     Client c(id, nom, email, tel, secteur, pays, dateInscription);
     if (c.modifier()) {
         QMessageBox::information(this, "Succès", "Client modifié avec succès !");
@@ -718,11 +628,6 @@ void MainWindow::on_btnModifier_3_clicked()
     }
 }
 
-
-
-
-
-//Supprimer
 void MainWindow::on_btnSupprimer_3_clicked()
 {
     if (ui->leId_6->text().isEmpty()) {
@@ -733,18 +638,20 @@ void MainWindow::on_btnSupprimer_3_clicked()
     int id = ui->leId_6->text().toInt();
     Client c;
 
-    if (c.supprimer(id)) { QMessageBox::information(this, "Succès", "Client supprimé avec succès !"); refreshClientTable(); }
-    else { QMessageBox::critical(this, "Erreur", "Échec de la suppression du client !"); }
+    if (c.supprimer(id)) {
+        QMessageBox::information(this, "Succès", "Client supprimé avec succès !");
+        refreshClientTable();
+    } else {
+        QMessageBox::critical(this, "Erreur", "Échec de la suppression du client !");
+    }
 }
 
-
-//Recherche
 void MainWindow::on_leSearch_6_textChanged(const QString &text)
 {
     QSqlQuery query;
     query.prepare("SELECT * FROM CLIENTT WHERE LOWER(SECTEURACTIVITE) LIKE LOWER(:rech) ORDER BY IDCLIENT ASC");
     query.bindValue(":rech", "%" + text + "%");
-    if (!query.exec()) { qDebug() << "Erreur recherche :" << query.lastError().text(); return; }
+    if (!query.exec()) return;
 
     ui->tableClients_6->setRowCount(0);
     int row = 0;
@@ -765,8 +672,6 @@ void MainWindow::on_leSearch_6_textChanged(const QString &text)
     ui->tableClients_6->horizontalHeader()->setStretchLastSection(true);
 }
 
-
-//Export CSV
 void MainWindow::on_pushButton_7_clicked()
 {
     QString filePath = QFileDialog::getSaveFileName(this, "Exporter les clients", "", "Fichiers CSV (*.csv)");
@@ -774,7 +679,7 @@ void MainWindow::on_pushButton_7_clicked()
 
     QFile file(filePath);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        QMessageBox::critical(this, "Erreur", "Impossible d’ouvrir le fichier.");
+        QMessageBox::critical(this, "Erreur", "Impossible d'ouvrir le fichier.");
         return;
     }
 
@@ -795,8 +700,6 @@ void MainWindow::on_pushButton_7_clicked()
     QMessageBox::information(this, "Succès", "Exportation terminée avec succès !");
 }
 
-
-//Tri
 void MainWindow::on_pushButton_9_clicked()
 {
     QSqlQueryModel *model = new QSqlQueryModel();
@@ -822,8 +725,7 @@ void MainWindow::on_pushButton_9_clicked()
 
         QLabel *bubble = new QLabel();
         bubble->setFixedSize(14, 14);
-        bubble->setStyleSheet(QString("border-radius:7px; background-color:%1;")
-                                  .arg(inactif ? "#E53935" : "#43A047"));
+        bubble->setStyleSheet(QString("border-radius:7px; background-color:%1;").arg(inactif ? "#E53935" : "#43A047"));
         layout->addWidget(bubble);
         ui->tableClients_6->setCellWidget(i, 0, cellWidget);
 
@@ -839,12 +741,9 @@ void MainWindow::on_pushButton_9_clicked()
     ui->tableClients_6->resizeColumnsToContents();
     ui->tableClients_6->horizontalHeader()->setStretchLastSection(true);
 
-    QMessageBox::information(this, "Tri effectué",
-                             "✅ Le tableau a été trié par date d'inscription (ordre croissant).");
+    QMessageBox::information(this, "Tri effectué", "✅ Le tableau a été trié par date d'inscription (ordre croissant).");
 }
 
-
-//Stats
 void MainWindow::on_pushButton_8_clicked()
 {
     QSqlQuery query;
@@ -854,7 +753,10 @@ void MainWindow::on_pushButton_8_clicked()
         GROUP BY TO_CHAR(DATEINSCRIPTION, 'MM')
         ORDER BY mois
     )");
-    if (!query.exec()) { QMessageBox::critical(this, "Erreur SQL", query.lastError().text()); return; }
+    if (!query.exec()) {
+        QMessageBox::critical(this, "Erreur SQL", query.lastError().text());
+        return;
+    }
 
     QBarSet *setNouveaux = new QBarSet("Nouveaux clients");
     QBarSet *setAnciens = new QBarSet("Anciens clients (> 30 jours)");
@@ -945,12 +847,643 @@ void MainWindow::on_pushButton_8_clicked()
     dialog->exec();
 }
 
-
 void MainWindow::on_pushButton_client_clicked()
 {
     ui->stackedWidget->setCurrentWidget(ui->page_client);
-    refreshClientTable(); // ✅ recharge la table à chaque clic sur Client
+    refreshClientTable();
+}
+
+// Gestion Projets
+void MainWindow::setupProjetTable()
+{
+    ui->tableWidgetProjets->setSelectionBehavior(QAbstractItemView::SelectRows);
+    ui->tableWidgetProjets->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    ui->tableWidgetProjets->setSelectionMode(QAbstractItemView::SingleSelection);
+    ui->tableWidgetProjets->horizontalHeader()->setStretchLastSection(true);
+
+    ui->tableWidgetProjets->setColumnCount(5);
+    QStringList headers;
+    headers << "Client" << "Budget Prévu" << "Budget Réalisé" << "Date Début" << "Date Fin";
+    ui->tableWidgetProjets->setHorizontalHeaderLabels(headers);
+}
+
+void MainWindow::refreshProjetTable()
+{
+    ui->tableWidgetProjets->setRowCount(0);
+
+    Projet projetModel;
+    QSqlQueryModel* model = projetModel.afficher();
+
+    for (int row = 0; row < model->rowCount(); ++row) {
+        ui->tableWidgetProjets->insertRow(row);
+        for (int col = 0; col < model->columnCount(); ++col) {
+            QTableWidgetItem *item = new QTableWidgetItem(model->data(model->index(row, col)).toString());
+            ui->tableWidgetProjets->setItem(row, col, item);
+        }
+    }
+
+    ui->tableWidgetProjets->resizeColumnsToContents();
+    delete model;
+}
+
+void MainWindow::on_btnAjouterProjet_clicked()
+{
+    if (isModifyingProjet) {
+        // Mode modification - sauvegarder les modifications
+        if (currentModifyClient.isEmpty()) {
+            QMessageBox::warning(this, "Erreur", "Aucun projet sélectionné pour modification.");
+            return;
+        }
+
+        QString nouveauClientStr = ui->lineEditClientProjet->text().trimmed();
+        QString nouveauBudgetPrevuStr = ui->lineEditBudgetPrevu->text().trimmed();
+        QString nouveauBudgetRealiseStr = ui->lineEditBudgetRealise->text().trimmed();
+        QString nouvelleDateDebutStr = ui->dateEditDebut->text().trimmed();
+        QString nouvelleDateFinStr = ui->dateEditFin->text().trimmed();
+
+        if (nouveauClientStr.isEmpty()) {
+            QMessageBox::warning(this, "Erreur", "Le nom du client est obligatoire !");
+            ui->lineEditClientProjet->setFocus();
+            return;
+        }
+
+        bool okPrevu, okRealise;
+        double nouveauBudgetPrevu = nouveauBudgetPrevuStr.toDouble(&okPrevu);
+        double nouveauBudgetRealise = nouveauBudgetRealiseStr.toDouble(&okRealise);
+
+        if (!nouveauBudgetPrevuStr.isEmpty() && !okPrevu) {
+            QMessageBox::warning(this, "Erreur", "Budget prévu invalide !");
+            ui->lineEditBudgetPrevu->setFocus();
+            return;
+        }
+
+        if (!nouveauBudgetRealiseStr.isEmpty() && !okRealise) {
+            QMessageBox::warning(this, "Erreur", "Budget réalisé invalide !");
+            ui->lineEditBudgetRealise->setFocus();
+            return;
+        }
+
+        QDate nouvelleDateDebut = QDate::fromString(nouvelleDateDebutStr, "dd/MM/yyyy");
+        QDate nouvelleDateFin = QDate::fromString(nouvelleDateFinStr, "dd/MM/yyyy");
+
+        if (!nouvelleDateDebutStr.isEmpty() && !nouvelleDateDebut.isValid()) {
+            QMessageBox::warning(this, "Erreur", "Format de date début invalide !");
+            ui->dateEditDebut->setFocus();
+            return;
+        }
+
+        if (!nouvelleDateFinStr.isEmpty() && !nouvelleDateFin.isValid()) {
+            QMessageBox::warning(this, "Erreur", "Format de date fin invalide !");
+            ui->dateEditFin->setFocus();
+            return;
+        }
+
+        if (nouvelleDateDebut.isValid() && nouvelleDateFin.isValid() && nouvelleDateFin < nouvelleDateDebut) {
+            QMessageBox::warning(this, "Erreur", "La date de fin doit être après la date de début !");
+            ui->dateEditFin->setFocus();
+            return;
+        }
+
+        nouveauBudgetPrevu = nouveauBudgetPrevuStr.isEmpty() ? 0.0 : nouveauBudgetPrevu;
+        nouveauBudgetRealise = nouveauBudgetRealiseStr.isEmpty() ? 0.0 : nouveauBudgetRealise;
+
+        QString nouvelleDateDebutFormatted = nouvelleDateDebutStr.isEmpty() ? "N/A" : nouvelleDateDebutStr;
+        QString nouvelleDateFinFormatted = nouvelleDateFinStr.isEmpty() ? "N/A" : nouvelleDateFinStr;
+
+        Projet projetModifie(nouveauClientStr, nouveauBudgetPrevu, nouveauBudgetRealise, nouvelleDateDebutFormatted, nouvelleDateFinFormatted);
+
+        if (projetModifie.modifier(currentModifyClient)) {
+            refreshProjetTable();
+            on_btnAnnulerModifProjet_clicked();
+            QMessageBox::information(this, "Succès", "Projet modifié avec succès !");
+        } else {
+            QMessageBox::critical(this, "Erreur", "Erreur lors de la modification du projet !");
+        }
+        return;
+    }
+
+    // Mode ajout normal
+    QString clientStr = ui->lineEditClientProjet->text().trimmed();
+    QString budgetPrevuStr = ui->lineEditBudgetPrevu->text().trimmed();
+    QString budgetRealiseStr = ui->lineEditBudgetRealise->text().trimmed();
+    QString dateDebutStr = ui->dateEditDebut->text().trimmed();
+    QString dateFinStr = ui->dateEditFin->text().trimmed();
+
+    if (clientStr.isEmpty()) {
+        QMessageBox::warning(this, "Erreur", "Le nom du client est obligatoire !");
+        ui->lineEditClientProjet->setFocus();
+        return;
+    }
+
+    bool okPrevu, okRealise;
+    double budgetPrevu = budgetPrevuStr.toDouble(&okPrevu);
+    double budgetRealise = budgetRealiseStr.toDouble(&okRealise);
+
+    if (!budgetPrevuStr.isEmpty() && !okPrevu) {
+        QMessageBox::warning(this, "Erreur", "Budget prévu invalide !");
+        ui->lineEditBudgetPrevu->setFocus();
+        return;
+    }
+
+    if (!budgetRealiseStr.isEmpty() && !okRealise) {
+        QMessageBox::warning(this, "Erreur", "Budget réalisé invalide !");
+        ui->lineEditBudgetRealise->setFocus();
+        return;
+    }
+
+    QDate dateDebut = QDate::fromString(dateDebutStr, "dd/MM/yyyy");
+    QDate dateFin = QDate::fromString(dateFinStr, "dd/MM/yyyy");
+
+    if (!dateDebutStr.isEmpty() && !dateDebut.isValid()) {
+        QMessageBox::warning(this, "Erreur", "Format de date début invalide !");
+        ui->dateEditDebut->setFocus();
+        return;
+    }
+
+    if (!dateFinStr.isEmpty() && !dateFin.isValid()) {
+        QMessageBox::warning(this, "Erreur", "Format de date fin invalide !");
+        ui->dateEditFin->setFocus();
+        return;
+    }
+
+    if (dateDebut.isValid() && dateFin.isValid() && dateFin < dateDebut) {
+        QMessageBox::warning(this, "Erreur", "La date de fin doit être après la date de début !");
+        ui->dateEditFin->setFocus();
+        return;
+    }
+
+    budgetPrevu = budgetPrevuStr.isEmpty() ? 0.0 : budgetPrevu;
+    budgetRealise = budgetRealiseStr.isEmpty() ? 0.0 : budgetRealise;
+
+    QString dateDebutFormatted = dateDebutStr.isEmpty() ? "N/A" : dateDebutStr;
+    QString dateFinFormatted = dateFinStr.isEmpty() ? "N/A" : dateFinStr;
+
+    Projet nouveauProjet(clientStr, budgetPrevu, budgetRealise, dateDebutFormatted, dateFinFormatted);
+
+    if (nouveauProjet.ajouter()) {
+        refreshProjetTable();
+        ui->lineEditClientProjet->clear();
+        ui->lineEditBudgetPrevu->clear();
+        ui->lineEditBudgetRealise->clear();
+        ui->dateEditDebut->clear();
+        ui->dateEditFin->clear();
+        QMessageBox::information(this, "Succès", "Projet ajouté avec succès !");
+    } else {
+        QMessageBox::critical(this, "Erreur", "Erreur lors de l'ajout du projet !");
+    }
+}
+
+void MainWindow::on_btnModifierProjet_clicked()
+{
+    int currentRow = ui->tableWidgetProjets->currentRow();
+    if (currentRow < 0) {
+        QMessageBox::warning(this, "Modification", "Veuillez sélectionner un projet à modifier.");
+        return;
+    }
+
+    currentModifyClient = ui->tableWidgetProjets->item(currentRow, 0)->text();
+    QString budgetPrevuActuel = ui->tableWidgetProjets->item(currentRow, 1)->text();
+    QString budgetRealiseActuel = ui->tableWidgetProjets->item(currentRow, 2)->text();
+    QString dateDebutActuelle = ui->tableWidgetProjets->item(currentRow, 3)->text();
+    QString dateFinActuelle = ui->tableWidgetProjets->item(currentRow, 4)->text();
+
+    ui->lineEditClientProjet->setText(currentModifyClient);
+    ui->lineEditBudgetPrevu->setText(budgetPrevuActuel);
+    ui->lineEditBudgetRealise->setText(budgetRealiseActuel);
+    ui->dateEditDebut->setText(dateDebutActuelle);
+    ui->dateEditFin->setText(dateFinActuelle);
+
+    isModifyingProjet = true;
+    ui->btnAjouterProjet->setText("Confirmer Modification");
+    ui->btnAnnulerModifProjet->setVisible(true);
+    ui->btnModifierProjet->setEnabled(false);
+    ui->btnSupprimerProjet->setEnabled(false);
+
+    QMessageBox::information(this, "Modification", "Mode modification activé pour le client: " + currentModifyClient);
+}
+
+void MainWindow::on_btnAnnulerModifProjet_clicked()
+{
+    isModifyingProjet = false;
+    currentModifyClient = "";
+
+    ui->btnAjouterProjet->setText("Ajouter Projet");
+    ui->btnAnnulerModifProjet->setVisible(false);
+    ui->btnModifierProjet->setEnabled(true);
+    ui->btnSupprimerProjet->setEnabled(true);
+
+    ui->lineEditClientProjet->clear();
+    ui->lineEditBudgetPrevu->clear();
+    ui->lineEditBudgetRealise->clear();
+    ui->dateEditDebut->clear();
+    ui->dateEditFin->clear();
+}
+
+void MainWindow::on_btnSupprimerProjet_clicked()
+{
+    int currentRow = ui->tableWidgetProjets->currentRow();
+    if (currentRow < 0) {
+        QMessageBox::warning(this, "Suppression", "Veuillez sélectionner un projet à supprimer.");
+        return;
+    }
+
+    QString clientProjet = ui->tableWidgetProjets->item(currentRow, 0)->text();
+
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(this, "Confirmation", "Voulez-vous vraiment supprimer le projet du client : " + clientProjet + " ?", QMessageBox::Yes | QMessageBox::No);
+
+    if (reply == QMessageBox::Yes) {
+        Projet projetModel;
+        bool success = projetModel.supprimer(clientProjet);
+
+        if (success) {
+            refreshProjetTable();
+            QMessageBox::information(this, "Succès", "Projet supprimé avec succès !");
+        } else {
+            QMessageBox::critical(this, "Erreur", "Erreur lors de la suppression du projet !");
+        }
+    }
+}
+
+void MainWindow::on_btnTriBudgetProjet_clicked()
+{
+    ui->tableWidgetProjets->sortItems(1, Qt::DescendingOrder);
+    QMessageBox::information(this, "Tri", "Projets triés par budget (décroissant) !");
+}
+
+void MainWindow::on_btnTriDateProjet_clicked()
+{
+    ui->tableWidgetProjets->sortItems(4, Qt::AscendingOrder);
+    QMessageBox::information(this, "Tri", "Projets triés par date de fin (croissant) !");
+}
+
+void MainWindow::on_btnRafraichirProjet_clicked()
+{
+    refreshProjetTable();
+    QMessageBox::information(this, "Rafraîchissement", "Données des projets rafraîchies !");
+}
+
+void MainWindow::on_tableProjets_cellClicked(int row, int column)
+{
+    Q_UNUSED(column);
+    if (!isModifyingProjet) {
+        ui->lineEditClientProjet->setText(ui->tableWidgetProjets->item(row, 0)->text());
+        ui->lineEditBudgetPrevu->setText(ui->tableWidgetProjets->item(row, 1)->text());
+        ui->lineEditBudgetRealise->setText(ui->tableWidgetProjets->item(row, 2)->text());
+        ui->dateEditDebut->setText(ui->tableWidgetProjets->item(row, 3)->text());
+        ui->dateEditFin->setText(ui->tableWidgetProjets->item(row, 4)->text());
+    }
+}
+
+// =============================================================
+// ====================== SPONSOR FUNCTIONS =====================
+// =============================================================
+
+void MainWindow::actualiserSponsorTable()
+{
+    QSqlQueryModel *model = tmpSponsor.afficher();
+    proxySponsor->setSourceModel(model);
+    ui->tableView_2->setModel(proxySponsor);
+    ui->tableView_2->resizeColumnsToContents();
+}
+
+bool MainWindow::validateSponsorInputs()
+{
+    if (ui->lineEdit_nom_9->text().trimmed().isEmpty()) {
+        QMessageBox::warning(this, "Erreur", "Nom sponsor vide.");
+        return false;
+    }
+
+    if (ui->comboBox_type_2->currentText().trimmed().isEmpty()) {
+        QMessageBox::warning(this, "Erreur", "Type sponsor invalide.");
+        return false;
+    }
+
+    bool ok;
+    double montant = ui->lineEdit_montant_2->text().toDouble(&ok);
+    if (!ok || montant < 0) {
+        QMessageBox::warning(this, "Erreur", "Montant invalide.");
+        return false;
+    }
+
+    QRegularExpression rx(R"(\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b)");
+    if (!rx.match(ui->lineEdit_mail_2->text()).hasMatch()) {
+        QMessageBox::warning(this, "Erreur", "Email invalide.");
+        return false;
+    }
+
+    return true;
+}
+
+void MainWindow::clearSponsorFields()
+{
+    ui->lineEdit_nom_9->clear();
+    ui->comboBox_type_2->setCurrentIndex(0);
+    ui->lineEdit_montant_2->clear();
+    ui->lineEdit_mail_2->clear();
+    ui->dateEdit_fin_2->setDate(QDate::currentDate());
+    ui->lineEdit_id_modify_2->clear();
+    ui->lineEdit_id_delete_2->clear();
+}
+
+// ========================= AJOUT =============================
+
+void MainWindow::on_ajouterButton_2_clicked()
+{
+    if (!validateSponsorInputs()) return;
+
+    Sponsor s(
+        ui->lineEdit_nom_9->text(),
+        ui->comboBox_type_2->currentText(),
+        ui->lineEdit_montant_2->text().toDouble(),
+        ui->lineEdit_mail_2->text(),
+        ui->dateEdit_fin_2->date()
+        );
+
+    if (s.ajouter()) {
+        QMessageBox::information(this, "Succès", "Sponsor ajouté !");
+        actualiserSponsorTable();
+        clearSponsorFields();
+    } else {
+        QMessageBox::critical(this, "Erreur", "Échec ajout sponsor.");
+    }
+}
+
+// ========================= MODIFIER =============================
+
+void MainWindow::on_modifierButton_2_clicked()
+{
+    bool ok;
+    int id = ui->lineEdit_id_modify_2->text().toInt(&ok);
+    if (!ok || id <= 0) {
+        QMessageBox::warning(this, "Erreur", "ID invalide.");
+        return;
+    }
+
+    if (!validateSponsorInputs()) return;
+
+    Sponsor s(
+        id,
+        ui->lineEdit_nom_9->text(),
+        ui->comboBox_type_2->currentText(),
+        ui->lineEdit_montant_2->text().toDouble(),
+        ui->lineEdit_mail_2->text(),
+        ui->dateEdit_fin_2->date()
+        );
+
+    if (s.modifier()) {
+        QMessageBox::information(this, "Succès", "Sponsor modifié.");
+        actualiserSponsorTable();
+    } else {
+        QMessageBox::critical(this, "Erreur", "Aucune ligne modifiée.");
+    }
+}
+
+// ========================= SUPPRIMER =============================
+
+void MainWindow::on_supprimerButton_2_clicked()
+{
+    bool ok;
+    int id = ui->lineEdit_id_delete_2->text().toInt(&ok);
+    if (!ok || id <= 0) {
+        QMessageBox::warning(this, "Erreur", "ID invalide.");
+        return;
+    }
+
+    if (QMessageBox::question(this, "Confirmation",
+                              "Voulez-vous supprimer ce sponsor ?")
+        == QMessageBox::Yes)
+    {
+        if (tmpSponsor.supprimer(id)) {
+            QMessageBox::information(this, "Succès", "Sponsor supprimé.");
+            actualiserSponsorTable();
+        } else {
+            QMessageBox::critical(this, "Erreur", "Échec suppression.");
+        }
+    }
+}
+
+// ========================= SEARCH =============================
+
+void MainWindow::on_lineEdit_searchGlobal_2_textChanged(const QString &term)
+{
+    proxySponsor->setFilterRegularExpression(
+        QRegularExpression(term, QRegularExpression::CaseInsensitiveOption)
+        );
+}
+
+// ========================= CLICK TABLE =============================
+
+void MainWindow::on_tableView_2_clicked(const QModelIndex &index)
+{
+    QModelIndex src = proxySponsor->mapToSource(index);
+    QAbstractItemModel *m = proxySponsor->sourceModel();
+
+    int row = src.row();
+
+    int id = m->data(m->index(row, 0)).toInt();
+    QString nom = m->data(m->index(row, 1)).toString();
+    QString type = m->data(m->index(row, 2)).toString();
+    double montant = m->data(m->index(row, 3)).toDouble();
+    QString mail = m->data(m->index(row, 4)).toString();
+    QDate fin = m->data(m->index(row, 5)).toDate();
+
+    ui->lineEdit_nom_9->setText(nom);
+    ui->comboBox_type_2->setCurrentText(type);
+    ui->lineEdit_montant_2->setText(QString::number(montant));
+    ui->lineEdit_mail_2->setText(mail);
+    ui->dateEdit_fin_2->setDate(fin);
+
+    ui->lineEdit_id_modify_2->setText(QString::number(id));
+    ui->lineEdit_id_delete_2->setText(QString::number(id));
 }
 
 
 
+////////////// ressourcess ///////////////
+// -------------------- AJOUT --------------------
+void MainWindow::on_AjoutBut2_clicked()
+{
+    int id = ui->lineNom->text().toInt();
+    QString type;
+
+    if (ui->Imagecheck->isChecked()) type = "Image";
+    else if (ui->Videocheck->isChecked()) type = "Video";
+    else if (ui->audiocheck->isChecked()) type = "Audio";
+    else type = "Autre";
+
+    QString nomProjet = ui->comboProj->currentText();
+    QString nomFichier = ui->outputajout->text();
+
+    Ressource r(id, type, nomProjet, nomFichier);
+    if (r.ajouter()) {
+        QMessageBox::information(this, "Ajout", "Ressource ajoutée avec succès ✅");
+        ui->RessourceTab->setModel(R.afficher());
+    } else {
+        QMessageBox::critical(this, "Erreur", "Échec d'ajout ❌");
+    }
+}
+
+// -------------------- SUPPRESSION --------------------
+void MainWindow::on_RessourceTab_doubleClicked(const QModelIndex &index)
+{
+    int id = ui->RessourceTab->model()->data(ui->RessourceTab->model()->index(index.row(), 0)).toInt();
+    if (QMessageBox::question(this, "Suppression", "Supprimer cette ressource ?") == QMessageBox::Yes)
+    {
+        R.supprimer(id);
+        ui->RessourceTab->setModel(R.afficher());
+    }
+}
+
+// -------------------- STATISTIQUES --------------------
+void MainWindow::on_StatsBut_clicked()
+{
+    QSqlQueryModel *model = R.statistiques();
+    QString stats;
+
+    for (int i = 0; i < model->rowCount(); i++) {
+        QString type = model->record(i).value("type").toString();
+        int nombre = model->record(i).value("nombre").toInt();
+        stats += type + " : " + QString::number(nombre) + "\n";
+    }
+
+    QMessageBox::information(this, "Statistiques 📊", stats);
+}
+
+// -------------------- EXPORT PDF --------------------
+void MainWindow::on_PDFBut_clicked()
+{
+    QPdfWriter pdf("Ressources.pdf");
+    QPainter painter(&pdf);
+
+    painter.drawText(100, 100, "Liste des Ressources :");
+    int y = 300;
+
+    QSqlQuery query("SELECT * FROM ressources");
+    while (query.next()) {
+        QString line = query.value(0).toString() + " | " +
+                       query.value(1).toString() + " | " +
+                       query.value(2).toString() + " | " +
+                       query.value(3).toString();
+        painter.drawText(100, y, line);
+        y += 200;
+    }
+
+    painter.end();
+    QMessageBox::information(this, "PDF", "Fichier PDF généré avec succès ✅");
+}
+
+// -------------------- RECHERCHE --------------------
+void MainWindow::on_RechercheRess_textChanged(const QString &text)
+{
+    QSqlQueryModel *model = new QSqlQueryModel();
+    QSqlQuery query;
+    query.prepare("SELECT * FROM ressources WHERE nomFichier LIKE :text OR type LIKE :text OR nomProjet LIKE :text");
+    query.bindValue(":text", "%" + text + "%");
+    query.exec();
+    model->setQuery(std::move(query));
+    ui->RessourceTab->setModel(model);
+}
+
+// -------------------- INTERFACE --------------------
+void MainWindow::setUpInterface()
+{
+    ui->AjoutBut2->setVisible(false);
+    ui->labelAjout->setVisible(false);
+    ui->labelStat->setVisible(false);
+    ui->lineNom->setVisible(false);
+    ui->comboProj->setVisible(false);
+    ui->label_nomm->setVisible(false);
+    ui->label_stats->setVisible(false);
+    ui->RetourneBut->setVisible(false);
+    ui->label_4->setVisible(false);
+    ui->ImpBut->setVisible(false);
+    ui->label->setVisible(false);
+    ui->outputajout->setVisible(false);
+    ui->statReturnBut->setVisible(false);
+}
+
+void MainWindow::allerAjoutPage()
+{
+    ui->AjoutBut2->setVisible(true);
+    ui->labelAjout->setVisible(true);
+    ui->lineNom->setVisible(true);
+    ui->comboProj->setVisible(true);
+    ui->label_nomm->setVisible(true);
+    ui->RetourneBut->setVisible(true);
+    ui->label_4->setVisible(true);
+    ui->ImpBut->setVisible(true);
+    ui->label->setVisible(true);
+    ui->outputajout->setVisible(true);
+    ui->labelAffichage->setVisible(true);
+}
+
+void MainWindow::allerPageStats()
+{
+    ui->labelStat->setVisible(true);
+    ui->label_stats->setVisible(true);
+    ui->statReturnBut->setVisible(true);
+}
+
+// -------------------- IMPORT --------------------
+void MainWindow::on_ImpBut_clicked()
+{
+    QString fileName = QFileDialog::getOpenFileName(
+        this,
+        "Importer un fichier multimédia",
+        "",
+        "Fichiers multimédias (*.mp3 *.wav *.ogg *.mp4 *.avi *.mkv *.mov *.jpg *.jpeg *.png *.bmp *.gif)"
+        );
+
+    if (fileName.isEmpty())
+        return;
+
+    QFileInfo fileInfo(fileName);
+    QString extension = fileInfo.suffix().toLower();
+
+    // --- IMAGE ---
+    if (extension == "png" || extension == "jpg" || extension == "jpeg" ||
+        extension == "bmp" || extension == "gif")
+    {
+        QPixmap pixmap(fileName);
+        if (!pixmap.isNull()) {
+            ui->labelAffichage->setPixmap(
+                pixmap.scaled(ui->labelAffichage->size(),
+                              Qt::KeepAspectRatio,
+                              Qt::SmoothTransformation)
+                );
+        } else {
+            QMessageBox::warning(this, "Erreur", "Impossible de charger l’image.");
+        }
+    }
+    // --- VIDÉO ---
+    else if (extension == "mp4" || extension == "avi" ||
+             extension == "mkv" || extension == "mov")
+    {
+        QVideoWidget *videoWidget = new QVideoWidget(this);
+        QMediaPlayer *player = new QMediaPlayer(this);
+        player->setVideoOutput(videoWidget);
+        player->setSource(QUrl::fromLocalFile(fileName));
+
+        videoWidget->setGeometry(ui->labelAffichage->geometry());
+        videoWidget->show();
+        player->play();
+    }
+    // --- AUDIO ---
+    else if (extension == "mp3" || extension == "wav" || extension == "ogg")
+    {
+        QMediaPlayer *player = new QMediaPlayer(this);
+        QAudioOutput *audioOutput = new QAudioOutput(this);
+
+        player->setAudioOutput(audioOutput);
+        player->setSource(QUrl::fromLocalFile(fileName));
+        audioOutput->setVolume(0.5); // 50 %
+
+        player->play();
+        QMessageBox::information(this, "Lecture audio", "Lecture du fichier audio...");
+    }
+    else
+    {
+        QMessageBox::information(this, "Info", "Ce type de fichier n’est pas pris en charge.");
+    }
+}

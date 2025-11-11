@@ -1,4 +1,4 @@
-QT += core gui charts widgets sql
+QT += core gui charts widgets sql multimedia multimediawidgets
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -13,7 +13,10 @@ SOURCES += \
     main.cpp \
     mainwindow.cpp\
     connection.cpp\
-    employe.cpp
+    employe.cpp \
+    projet.cpp\
+    sponsor.cpp\
+    ressource.cpp
 
 
 
@@ -21,15 +24,14 @@ HEADERS += \
     client.h \
     mainwindow.h\
     connection.h\
-    Employe.h
+    Employe.h \
+    projet.h\
+    sponsor.h\
+    ressource.h
 
 
 FORMS += \
-    Formulaires/mainwindow.ui
-<<<<<<< HEAD
-=======
-
->>>>>>> a8c0b13 (correction .pro par git)
+    mainwindow.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
