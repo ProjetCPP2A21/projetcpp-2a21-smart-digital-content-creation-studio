@@ -86,7 +86,6 @@ void gestion_employe::ajouterEmploye() {
     QString questionSecrete = ui->comboBox_q->currentText();
     QString reponseSecrete = ui->lineEdit_reponse->text();
 
-    // Validation basique
     if (nom.isEmpty() || prenom.isEmpty() || email.isEmpty()) {
         ui->statusbar->showMessage("Erreur : Champs obligatoires manquants !");
         return;
@@ -101,17 +100,15 @@ void gestion_employe::ajouterEmploye() {
     emp.setQuestionSecrete(questionSecrete);
     emp.setReponseSecrete(reponseSecrete);
 
-    // Vérif email unique ou autre (optionnel, adapte idExiste si besoin pour email)
-    // if (emp.emailExiste(email)) { erreur; return; }  // À implémenter si besoin dans Employe
 
     if (emp.ajouter()) {
         ui->statusbar->showMessage("Employé ajouté avec succès !");
-        // Rafraîchir affichage
+
         QSqlQueryModel *model = emp.afficher();
         afficherEmployes(model);
         delete model;
-        afficherStatistiques();  // Mise à jour stats
-        // Vider champs UI
+        afficherStatistiques();
+
         ui->lineEdit_nom->clear();
         ui->lineEdit_prenom->clear();
         ui->lineEdit_email->clear();
@@ -175,8 +172,8 @@ void gestion_employe::onItemChanged(QTableWidgetItem *item) {
         if (query.numRowsAffected() > 0) {  // Vérifie si une ligne a été modifiée
             ui->statusbar->showMessage(QString("Employé %1 (%2) mis à jour : %3").arg(id_employe).arg(fieldName).arg(newValue));
             qDebug() << "Succès DB : ID" << id_employe << "->" << fieldName << "=" << newValue;
-            // Pas besoin de rafraîchir tout le tableau : la cellule est déjà mise à jour visuellement
-            afficherStatistiques();  // Met à jour les stats si le poste change
+
+            afficherStatistiques();
         } else {
             ui->statusbar->showMessage("Aucune modification (ID introuvable ?)");
         }
@@ -189,7 +186,7 @@ void gestion_employe::onItemChanged(QTableWidgetItem *item) {
     }
 }
 
-// Supprimer (adapté à DB)
+// Supprimer
 void gestion_employe::supprimerEmploye() {
     bool ok;
     int id_employe = ui->lineEdit_id_supp->text().toInt(&ok); // Vérifie la conversion en entier
@@ -231,7 +228,7 @@ void gestion_employe::rechercherEmploye() {
 }
 
 void gestion_employe::afficherEmployes(QSqlQueryModel *model) {
-    ui->tableWidgetEmployes->setRowCount(0); // vider le tableau
+    ui->tableWidgetEmployes->setRowCount(0);
 
     if (!model) {
         qDebug() << "Modèle nul pour affichage !";
@@ -280,21 +277,26 @@ void gestion_employe::exportEmployes()
 
     QTextStream out(&file);
 
-    // Écrire les en-têtes
+    // en-têtes
     out << "\"ID\";\"Nom\";\"Prénom\";\"Email\";\"Poste\"\n";
 
-    // Écrire les données depuis DB
-    QSqlQuery query("SELECT id_employe, nom, prenom, email, poste FROM employe");
-    if (query.exec()) {
-        while (query.next()) {
-            out << "\"" << query.value(0).toString() << "\";"
-                << "\"" << query.value(1).toString() << "\";"
-                << "\"" << query.value(2).toString() << "\";"
-                << "\"" << query.value(3).toString() << "\";"
-                << "\"" << query.value(4).toString() << "\"\n";
-        }
-    } else {
+    // requête SQL
+    QSqlQuery query;
+    query.prepare("SELECT id_employe, nom, prenom, email, poste FROM employe");
+
+    if (!query.exec()) {
         qDebug() << "Erreur query export:" << query.lastError().text();
+        QMessageBox::warning(this, "Erreur", "Impossible d'exécuter la requête d'export.");
+        return;
+    }
+
+    // écrire les lignes
+    while (query.next()) {
+        out << "\"" << query.value(0).toString() << "\";"
+            << "\"" << query.value(1).toString() << "\";"
+            << "\"" << query.value(2).toString() << "\";"
+            << "\"" << query.value(3).toString() << "\";"
+            << "\"" << query.value(4).toString() << "\"\n";
     }
 
     file.close();

@@ -7,6 +7,7 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
     a.setStyleSheet("QWidget { background-color: white; color: black; }");
+
     gestion_employe w;
     Connection& c= Connection::createInstance();
     bool test=c.createconnect();
@@ -21,6 +22,7 @@ int main(int argc, char *argv[])
         QMessageBox::critical(nullptr, QObject::tr("database is not open"),
                               QObject::tr("connection failed.\n"
                                           "Click Cancel to exit."), QMessageBox::Cancel);
+
 
     w.show();
     return a.exec();
