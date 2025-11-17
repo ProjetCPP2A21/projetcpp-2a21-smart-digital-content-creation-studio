@@ -20,8 +20,7 @@ private:
 
 public:
     Client();
-    Client(int id, QString nom, QString email, QString telephone,
-           QString secteur, QString pays, QDate dateInscription);
+    Client(int id, QString nom, QString email, QString telephone, QString secteur, QString pays, QDate dateInscription, int fingerID = -1);
 
     // CRUD
     bool ajouter();
@@ -33,6 +32,8 @@ public:
     QString getEtat() const { return etat; }
     void setFingerID(int f) { fingerID = f; }
     int getFingerID() const { return fingerID; }
+    int getId() const { return id; }
+
 };
 
 #endif // CLIENT_H

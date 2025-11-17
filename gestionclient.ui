@@ -505,7 +505,7 @@ QPushButton:hover {
 }</string>
       </property>
       <property name="columnCount">
-       <number>8</number>
+       <number>9</number>
       </property>
       <column>
        <property name="text">
@@ -545,6 +545,11 @@ QPushButton:hover {
       <column>
        <property name="text">
         <string>DateCréation</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>ID Empreinte</string>
        </property>
       </column>
      </widget>

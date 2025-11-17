@@ -354,8 +354,8 @@ public:
         verticalLayout_5->addLayout(horizontalLayout_4);
 
         tableClients_6 = new QTableWidget(layoutWidget_2);
-        if (tableClients_6->columnCount() < 8)
-            tableClients_6->setColumnCount(8);
+        if (tableClients_6->columnCount() < 9)
+            tableClients_6->setColumnCount(9);
         QTableWidgetItem *__qtablewidgetitem = new QTableWidgetItem();
         tableClients_6->setHorizontalHeaderItem(0, __qtablewidgetitem);
         QTableWidgetItem *__qtablewidgetitem1 = new QTableWidgetItem();
@@ -372,6 +372,8 @@ public:
         tableClients_6->setHorizontalHeaderItem(6, __qtablewidgetitem6);
         QTableWidgetItem *__qtablewidgetitem7 = new QTableWidgetItem();
         tableClients_6->setHorizontalHeaderItem(7, __qtablewidgetitem7);
+        QTableWidgetItem *__qtablewidgetitem8 = new QTableWidgetItem();
+        tableClients_6->setHorizontalHeaderItem(8, __qtablewidgetitem8);
         tableClients_6->setObjectName("tableClients_6");
         tableClients_6->setStyleSheet(QString::fromUtf8("QGroupBox {\n"
 "    border: 2px solid #A64B00;\n"
@@ -384,7 +386,7 @@ public:
 "    );\n"
 "\n"
 "}"));
-        tableClients_6->setColumnCount(8);
+        tableClients_6->setColumnCount(9);
 
         verticalLayout_5->addWidget(tableClients_6);
 
@@ -451,6 +453,8 @@ public:
         ___qtablewidgetitem6->setText(QCoreApplication::translate("GestionClient", "Pays", nullptr));
         QTableWidgetItem *___qtablewidgetitem7 = tableClients_6->horizontalHeaderItem(7);
         ___qtablewidgetitem7->setText(QCoreApplication::translate("GestionClient", "DateCr\303\251ation", nullptr));
+        QTableWidgetItem *___qtablewidgetitem8 = tableClients_6->horizontalHeaderItem(8);
+        ___qtablewidgetitem8->setText(QCoreApplication::translate("GestionClient", "ID Empreinte", nullptr));
         (void)GestionClient;
     } // retranslateUi
 

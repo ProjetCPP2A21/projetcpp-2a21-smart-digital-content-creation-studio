@@ -33,6 +33,8 @@ private slots:
     //-----------------ARDUINO----------------------
     void readArduinoData();
     void activerClient(QString id);
+    void envoyerQtReady();               // OK ici
+    void verifierSynchronisation(int);   // OK ici
 
 private:
     Ui::GestionClient *ui;
@@ -42,6 +44,8 @@ private:
     //-----------------ARDUINO----------------------
     //initialisation port arduino
     QSerialPort *arduino;
+
+
 
 };
 

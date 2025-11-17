@@ -84,9 +84,11 @@ void GestionClient::refreshTable()
     Client c;
     QSqlQueryModel *model = c.afficher();
     ui->tableClients_6->setRowCount(0);
-    ui->tableClients_6->setColumnCount(8);
+    ui->tableClients_6->setColumnCount(9);
 
-    QStringList headers = {"Activité", "ID", "Nom", "Email", "Téléphone", "Secteur d'activité", "Pays", "Date d'inscription"};
+    QStringList headers = {"Activité", "ID", "Nom", "Email", "Téléphone",
+                           "Secteur d'activité", "Pays", "Date d'inscription", "ID Empreinte"};
+
     ui->tableClients_6->setHorizontalHeaderLabels(headers);
 
     QDate today = QDate::currentDate();
@@ -137,6 +139,7 @@ void GestionClient::refreshTable()
 //LE CLIENT S'AFFICHE QUAND ON CLIQUE SUR SON ID
 void GestionClient::on_tableClients_6_cellClicked(int row, int column)
 {
+    refreshTable();
     Q_UNUSED(column);
     ui->leId_6->setText(ui->tableClients_6->item(row, 1)->text());
     ui->leNom_6->setText(ui->tableClients_6->item(row, 2)->text());
@@ -432,30 +435,34 @@ void GestionClient::on_pushButton_7_clicked()
 
 
 
-
 //TRIER
 void GestionClient::on_pushButton_9_clicked()
 {
-    // 🔹 Création du modèle trié (ordre croissant sur la date d’inscription)
+    // Création du modèle trié (ordre croissant sur la date d’inscription)
     QSqlQueryModel *model = new QSqlQueryModel();
     model->setQuery("SELECT * FROM CLIENTT ORDER BY DATEINSCRIPTION ASC");
 
-    // 🔸 Réinitialisation du tableau
+    // Réinitialisation du tableau
     ui->tableClients_6->setRowCount(0);
     ui->tableClients_6->setColumnCount(8);
-    QStringList headers = {"Activité", "ID", "Nom", "Email", "Téléphone", "Secteur d'activité", "Pays", "Date d'inscription"};
+
+    QStringList headers = {
+        "Activité", "ID", "Nom", "Email",
+        "Téléphone", "Secteur d'activité", "Pays", "Date d'inscription"
+    };
     ui->tableClients_6->setHorizontalHeaderLabels(headers);
 
     QDate today = QDate::currentDate();
 
-    // 🔸 Boucle de remplissage complète
+    // Remplissage
     for (int i = 0; i < model->rowCount(); i++) {
         ui->tableClients_6->insertRow(i);
 
-        // --- Calcul activité client ---
+        // Calcul activité/inactivité
         QDate dateInscription = model->data(model->index(i, 6)).toDate();
         bool inactif = (dateInscription.daysTo(today) > 30);
 
+        // Bulle rouge/verte
         QWidget *cellWidget = new QWidget();
         QHBoxLayout *layout = new QHBoxLayout(cellWidget);
         layout->setContentsMargins(0, 0, 0, 0);
@@ -468,7 +475,7 @@ void GestionClient::on_pushButton_9_clicked()
         layout->addWidget(bubble);
         ui->tableClients_6->setCellWidget(i, 0, cellWidget);
 
-        // --- Remplissage des colonnes restantes ---
+        // Remplir les colonnes
         for (int j = 0; j < model->columnCount(); j++) {
             QVariant data = model->data(model->index(i, j));
             QString value;
@@ -482,13 +489,14 @@ void GestionClient::on_pushButton_9_clicked()
         }
     }
 
-    // 🔸 Ajustements finaux
     ui->tableClients_6->resizeColumnsToContents();
     ui->tableClients_6->horizontalHeader()->setStretchLastSection(true);
 
     QMessageBox::information(this, "Tri effectué",
-                             " Le tableau a été trié par date d'inscription (ordre croissant).");
+                             "Le tableau a été trié par date d'inscription (ordre croissant).");
 }
+
+
 
 
 
@@ -761,17 +769,35 @@ void GestionClient::on_pushButton_6_clicked()
 //LECTURE ARDUINO
 void GestionClient::readArduinoData()
 {
-    // // lire le message envoyé par Arduino
+    if (!arduino || !arduino->isOpen()) return;
+
     QString data = arduino->readAll().trimmed();
+    qDebug() << "[Arduino → Qt] " << data;
 
-    qDebug() << "Arduino:" << data;
-
-    // // si Arduino renvoie : FINGER:12345678
+    // 1️⃣ Détection d’une empreinte : Arduino → Qt
     if (data.startsWith("FINGER:")) {
         QString id = data.mid(7).trimmed();
         activerClient(id);
+        return;
+    }
+
+    // 2️⃣ Nombre d’empreintes dans le capteur : Arduino → Qt
+    if (data.startsWith("TEMPLATE_COUNT:")) {
+        QString nb = data.mid(15).trimmed();
+        int count = nb.toInt();
+        verifierSynchronisation(count);  // Compare Oracle ↔ Capteur
+        return;
+    }
+
+    // 3️⃣ Message SYSTEM_READY (juste pour info)
+    if (data == "SYSTEM_READY") {
+        qDebug() << "[INFO] Arduino prêt.";
+        return;
     }
 }
+
+
+
 
 //ACTIVATION CLIENT
 void GestionClient::activerClient(QString id)
@@ -788,4 +814,40 @@ void GestionClient::activerClient(QString id)
         QMessageBox::warning(this, "Erreur", "Client introuvable !");
     }
 }
+
+
+
+
+//ARDUINO : QT_READY
+void GestionClient::envoyerQtReady()
+{
+    if (!arduino || !arduino->isOpen()) return;
+
+    arduino->write("QT_READY\n");
+    qDebug() << "[QT → Arduino] QT_READY envoyé";
+}
+
+
+
+
+//ARDUINO : SYNCHRONISATION
+void GestionClient::verifierSynchronisation(int templateCount)
+{
+    QSqlQuery q;
+    q.prepare("SELECT COUNT(*) FROM CLIENTT WHERE FINGERID IS NOT NULL");
+    q.exec();
+    q.next();
+    int nbOracle = q.value(0).toInt();
+
+    if (!arduino || !arduino->isOpen()) return;
+
+    if (nbOracle == templateCount) {
+        arduino->write("SYNC_OK\n");
+        qDebug() << "[QT → Arduino] SYNC_OK";
+    } else {
+        arduino->write("SYNC_WARNING\n");
+        qDebug() << "[QT → Arduino] SYNC_WARNING";
+    }
+}
+
 
