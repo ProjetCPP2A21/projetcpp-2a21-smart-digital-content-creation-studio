@@ -4,6 +4,13 @@
 #include <QSqlError>
 #include <QDebug>
 
+
+
+
+
+
+// CONSTRUCTEURS
+
 Client::Client()
 {
     id = 0;
@@ -13,9 +20,18 @@ Client::Client()
     secteur = "";
     pays = "";
     dateInscription = QDate::currentDate();
+    etat = "actif";   // valeur par défaut
 }
 
-Client::Client(int id, QString nom, QString email, QString telephone, QString secteur, QString pays, QDate dateInscription)
+
+
+
+
+
+
+
+Client::Client(int id, QString nom, QString email, QString telephone,
+               QString secteur, QString pays, QDate dateInscription)
 {
     this->id = id;
     this->nom = nom;
@@ -24,19 +40,33 @@ Client::Client(int id, QString nom, QString email, QString telephone, QString se
     this->secteur = secteur;
     this->pays = pays;
     this->dateInscription = dateInscription;
+
+    // Définition automatique de l'état
+    this->etat = (dateInscription.daysTo(QDate::currentDate()) > 30)
+                     ? "inactif"
+                     : "actif";
 }
 
-//  AJOUTER
+
+
+
+
+
+//AJOUTER
 bool Client::ajouter()
 {
     QSqlQuery query;
 
-    // ️ Préparation de la requête (identique à ta structure de table)
-    query.prepare("INSERT INTO CLIENTT "
-                  "(IDCLIENT, NOM, EMAIL, TELEPHONE, SECTEURACTIVITE, PAYS, DATEINSCRIPTION) "
-                  "VALUES (:id, :nom, :email, :telephone, :secteuractivite, :pays, TO_DATE(:dateinscription, 'YYYY-MM-DD'))");
+    // Calcul automatique de l'état au moment de l'ajout
+    QString autoEtat = (dateInscription.daysTo(QDate::currentDate()) > 30)
+                           ? "inactif"
+                           : "actif";
 
-    //  Liaison des valeurs
+    query.prepare("INSERT INTO CLIENTT "
+                  "(IDCLIENT, NOM, EMAIL, TELEPHONE, SECTEURACTIVITE, PAYS, DATEINSCRIPTION, ETAT) "
+                  "VALUES (:id, :nom, :email, :telephone, :secteuractivite, :pays, "
+                  "TO_DATE(:dateinscription, 'YYYY-MM-DD'), :etat)");
+
     query.bindValue(":id", id);
     query.bindValue(":nom", nom.trimmed());
     query.bindValue(":email", email.trimmed());
@@ -44,20 +74,17 @@ bool Client::ajouter()
     query.bindValue(":secteuractivite", secteur.trimmed());
     query.bindValue(":pays", pays.trimmed());
     query.bindValue(":dateinscription", dateInscription.toString("yyyy-MM-dd"));
+    query.bindValue(":etat", autoEtat);
 
-    // 🧩 Exécution
     if (query.exec()) {
         qDebug() << " Client ajouté avec succès !";
         return true;
     } else {
-        //  Détails complets en cas d'erreur Oracle
         qDebug() << " Erreur ajout client:" << query.lastError().text();
-        qDebug() << " Détail driver:" << query.lastError().driverText();
-        qDebug() << " Détail base:" << query.lastError().databaseText();
-        qDebug() << " Requête exécutée:" << query.lastQuery();
         return false;
     }
 }
+
 
 
 
@@ -68,18 +95,28 @@ bool Client::ajouter()
 QSqlQueryModel* Client::afficher()
 {
     QSqlQueryModel* model = new QSqlQueryModel();
-    model->setQuery("SELECT * FROM CLIENTT ORDER BY IDCLIENT ASC");
+    model->setQuery("SELECT IDCLIENT, NOM, EMAIL, TELEPHONE, SECTEURACTIVITE, PAYS, DATEINSCRIPTION, ETAT "
+                    "FROM CLIENTT ORDER BY IDCLIENT ASC");
+
     model->setHeaderData(0, Qt::Horizontal, QObject::tr("ID"));
     model->setHeaderData(1, Qt::Horizontal, QObject::tr("Nom"));
     model->setHeaderData(2, Qt::Horizontal, QObject::tr("Email"));
     model->setHeaderData(3, Qt::Horizontal, QObject::tr("Téléphone"));
-    model->setHeaderData(4, Qt::Horizontal, QObject::tr("Secteur d'activité"));
+    model->setHeaderData(4, Qt::Horizontal, QObject::tr("Secteur"));
     model->setHeaderData(5, Qt::Horizontal, QObject::tr("Pays"));
     model->setHeaderData(6, Qt::Horizontal, QObject::tr("Date d'inscription"));
+    model->setHeaderData(7, Qt::Horizontal, QObject::tr("État"));
+
     return model;
 }
 
-// SUPPRIMER
+
+
+
+
+
+
+//SUPPRIMER
 bool Client::supprimer(int id)
 {
     QSqlQuery query;
@@ -95,10 +132,22 @@ bool Client::supprimer(int id)
     }
 }
 
-//  MODIFIER
+
+
+
+
+
+
+
+// MODIFIER
 bool Client::modifier()
 {
     QSqlQuery query;
+
+    // recalcul automatique de l'état à la modification
+    QString autoEtat = (dateInscription.daysTo(QDate::currentDate()) > 30)
+                           ? "inactif"
+                           : "actif";
 
     QString sql = "UPDATE CLIENTT SET "
                   "NOM = :nom, "
@@ -106,7 +155,8 @@ bool Client::modifier()
                   "TELEPHONE = :telephone, "
                   "SECTEURACTIVITE = :secteur, "
                   "PAYS = :pays, "
-                  "DATEINSCRIPTION = TO_DATE(:dateInscription, 'YYYY-MM-DD') "
+                  "DATEINSCRIPTION = TO_DATE(:dateInscription, 'YYYY-MM-DD'), "
+                  "ETAT = :etat "
                   "WHERE IDCLIENT = :id";
 
     query.prepare(sql);
@@ -118,24 +168,13 @@ bool Client::modifier()
     query.bindValue(":secteur", secteur);
     query.bindValue(":pays", pays);
     query.bindValue(":dateInscription", dateInscription.toString("yyyy-MM-dd"));
-
-    qDebug() << " [DEBUG SQL] Requête préparée :" << sql;
-    qDebug() << " [DEBUG PARAMS] ID:" << id
-             << ", NOM:" << nom
-             << ", EMAIL:" << email
-             << ", TEL:" << telephone
-             << ", SECTEUR:" << secteur
-             << ", PAYS:" << pays
-             << ", DATE:" << dateInscription.toString("yyyy-MM-dd");
+    query.bindValue(":etat", autoEtat);
 
     if (query.exec()) {
-        int rows = query.numRowsAffected();
-        qDebug() << " Requête exécutée. Lignes affectées :" << rows;
-        return rows > 0;
+        qDebug() << " Modification réussie.";
+        return true;
     } else {
         qDebug() << " Erreur Oracle lors du UPDATE:" << query.lastError().text();
         return false;
     }
 }
-
-

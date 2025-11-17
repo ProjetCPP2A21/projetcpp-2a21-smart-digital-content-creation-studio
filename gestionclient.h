@@ -1,6 +1,10 @@
 #ifndef GESTIONCLIENT_H
 #define GESTIONCLIENT_H
 
+#include <QSerialPort>
+#include <QSerialPortInfo>
+
+
 #include <QWidget>
 
 namespace Ui {
@@ -26,9 +30,19 @@ private slots:
     void on_pushButton_8_clicked();  // stats
     void on_pushButton_6_clicked();  // PDF inactifs
 
+    //-----------------ARDUINO----------------------
+    void readArduinoData();
+    void activerClient(QString id);
+
 private:
     Ui::GestionClient *ui;
     void refreshTable();
+
+
+    //-----------------ARDUINO----------------------
+    //initialisation port arduino
+    QSerialPort *arduino;
+
 };
 
 #endif // GESTIONCLIENT_H

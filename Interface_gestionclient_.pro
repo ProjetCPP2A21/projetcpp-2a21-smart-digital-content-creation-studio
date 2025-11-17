@@ -31,4 +31,5 @@ CONFIG += console
 CONFIG -= app_bundle
 
 QT += charts
+QT += serialport
 

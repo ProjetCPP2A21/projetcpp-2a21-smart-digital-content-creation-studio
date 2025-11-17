@@ -413,6 +413,7 @@ Makefile: ../../Interface_gestionclient_.pro C:/Qt/6.7.3/mingw_64/mkspecs/win32-
 		C:/Qt/6.7.3/mingw_64/lib/Qt6OpenGL.prl \
 		C:/Qt/6.7.3/mingw_64/lib/Qt6Gui.prl \
 		C:/Qt/6.7.3/mingw_64/lib/Qt6Sql.prl \
+		C:/Qt/6.7.3/mingw_64/lib/Qt6SerialPort.prl \
 		C:/Qt/6.7.3/mingw_64/lib/Qt6Core.prl \
 		C:/Qt/6.7.3/mingw_64/mkspecs/features/build_pass.prf
 	$(QMAKE) -o Makefile ..\..\Interface_gestionclient_.pro -spec win32-g++ "CONFIG+=debug" "CONFIG+=qml_debug"
@@ -759,6 +760,7 @@ C:/Qt/6.7.3/mingw_64/lib/Qt6Widgets.prl:
 C:/Qt/6.7.3/mingw_64/lib/Qt6OpenGL.prl:
 C:/Qt/6.7.3/mingw_64/lib/Qt6Gui.prl:
 C:/Qt/6.7.3/mingw_64/lib/Qt6Sql.prl:
+C:/Qt/6.7.3/mingw_64/lib/Qt6SerialPort.prl:
 C:/Qt/6.7.3/mingw_64/lib/Qt6Core.prl:
 C:/Qt/6.7.3/mingw_64/mkspecs/features/build_pass.prf:
 qmake: FORCE

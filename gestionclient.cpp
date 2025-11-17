@@ -25,13 +25,52 @@
 
 
 
+//-----------------ARDUINO----------------------
+#include <QSerialPort>     // // Arduino
+#include <QSerialPortInfo> // // Liste des ports COM
+
+
+
+
+
 GestionClient::GestionClient(QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::GestionClient)
 {
     ui->setupUi(this);
     refreshTable();
+
+
+
+
+
+    //-----------------ARDUINO----------------------
+    // === Connexion Arduino ===
+    arduino = new QSerialPort(this);
+
+    // // auto-détection du port Arduino
+    foreach (const QSerialPortInfo &info, QSerialPortInfo::availablePorts()) {
+        if (info.description().contains("Arduino") ||
+            info.manufacturer().contains("Arduino"))
+        {
+            arduino->setPort(info);
+            break;
+        }
+    }
+
+    arduino->setBaudRate(QSerialPort::Baud9600);
+
+    if (arduino->open(QSerialPort::ReadWrite)) {
+        // // si Arduino connecté
+        connect(arduino, &QSerialPort::readyRead, this, &GestionClient::readArduinoData);
+        qDebug() << "Arduino connecté.";
+    } else {
+        qDebug() << "Arduino NON détecté.";
+    }
+
 }
+
+
 
 GestionClient::~GestionClient()
 {
@@ -316,7 +355,7 @@ void GestionClient::on_leSearch_6_textChanged(const QString &text)
 
 
 
-// EXPORT CSV
+// EXPORT PDF
 void GestionClient::on_pushButton_7_clicked()
 {
     Client c;
@@ -343,7 +382,7 @@ void GestionClient::on_pushButton_7_clicked()
 
     // TABLEAU
     int x = 100, y = 500, h = 90;
-    int w[] = {250, 300, 450, 250, 260, 170, 220}; // ✅ ID: 250, Tél: 250
+    int w[] = {250, 300, 450, 250, 260, 170, 220}; // ID: 250, Tél: 250
     QStringList headers = {"ID", "Nom", "Email", "Tél", "Secteur", "Pays", "Date"};
 
     // EN-TÊTE
@@ -385,8 +424,10 @@ void GestionClient::on_pushButton_7_clicked()
     painter.drawText(100, pdf.height() - 150, "Généré le : " + QDate::currentDate().toString("dd/MM/yyyy"));
 
     painter.end();
-    QMessageBox::information(this, "PDF", "✅ Exporté !");
+    QMessageBox::information(this, "PDF", "Exporté !");
 }
+
+
 
 
 
@@ -446,7 +487,7 @@ void GestionClient::on_pushButton_9_clicked()
     ui->tableClients_6->horizontalHeader()->setStretchLastSection(true);
 
     QMessageBox::information(this, "Tri effectué",
-                             "✅ Le tableau a été trié par date d'inscription (ordre croissant).");
+                             " Le tableau a été trié par date d'inscription (ordre croissant).");
 }
 
 
@@ -535,7 +576,7 @@ void GestionClient::on_pushButton_8_clicked()
     chart->addAxis(axisX, Qt::AlignBottom);
     series->attachAxis(axisX);
 
-    // ✅ Axe Y corrigé : entiers seulement
+    //  Axe Y corrigé : entiers seulement
     QValueAxis *axisY = new QValueAxis();
     axisY->setTitleText("Nombre de clients");
     axisY->setLabelsColor(QColor("#14172D"));
@@ -622,13 +663,13 @@ void GestionClient::on_pushButton_6_clicked()
     int colIdWidth = 180;
     int colNomWidth = 450;
     int colEmailWidth = 700;
-    int colDateWidth = 570;  // ✅ Agrandi pour "Date d'inscription"
+    int colDateWidth = 570;  // Agrandi pour "Date d'inscription"
 
-    // === EN-TÊTES ===
+    // EN-TÊTES
     QFont headerFont("Arial", 12, QFont::Bold);
     painter.setFont(headerFont);
     painter.setPen(Qt::white);
-    painter.setBrush(mauveHeader);  // ✅ Fond mauve
+    painter.setBrush(mauveHeader);  //Fond mauve
 
     // Fond pour l'en-tête
     painter.drawRect(startX, y, colIdWidth + colNomWidth + colEmailWidth + colDateWidth, rowHeight);
@@ -649,7 +690,7 @@ void GestionClient::on_pushButton_6_clicked()
     painter.drawText(QRect(startX + colIdWidth + colNomWidth, y, colEmailWidth, rowHeight), Qt::AlignCenter, "Email");
     painter.drawText(QRect(startX + colIdWidth + colNomWidth + colEmailWidth, y, colDateWidth, rowHeight), Qt::AlignCenter, "Date d'inscription");
 
-    // === DONNÉES ===
+    //DONNÉES
     QFont bodyFont("Arial", 10);
     painter.setFont(bodyFont);
     y += rowHeight;
@@ -665,7 +706,7 @@ void GestionClient::on_pushButton_6_clicked()
             QString email = model->data(model->index(i, 2)).toString();
             QString dateStr = date.toString("dd/MM/yyyy");
 
-            // ✅ Fond alterné avec les couleurs du thème
+            // Fond alterné avec les couleurs du thème
             if (ligne % 2 == 0) {
                 painter.fillRect(startX, y, colIdWidth + colNomWidth + colEmailWidth + colDateWidth, rowHeight, mauveLight);
             } else {
@@ -705,5 +746,46 @@ void GestionClient::on_pushButton_6_clicked()
     painter.drawText(200, pdf.height() - 150, "Généré le : " + QDate::currentDate().toString("dd/MM/yyyy"));
 
     painter.end();
-    QMessageBox::information(this, "PDF", "✅ PDF généré avec succès !");
+    QMessageBox::information(this, "PDF", " PDF généré avec succès !");
 }
+
+
+
+
+
+
+
+//-----------------ARDUINO----------------------
+
+
+//LECTURE ARDUINO
+void GestionClient::readArduinoData()
+{
+    // // lire le message envoyé par Arduino
+    QString data = arduino->readAll().trimmed();
+
+    qDebug() << "Arduino:" << data;
+
+    // // si Arduino renvoie : FINGER:12345678
+    if (data.startsWith("FINGER:")) {
+        QString id = data.mid(7).trimmed();
+        activerClient(id);
+    }
+}
+
+//ACTIVATION CLIENT
+void GestionClient::activerClient(QString id)
+{
+    // // mise à jour SQL : mettre le client comme actif aujourd’hui
+    QSqlQuery query;
+    query.prepare("UPDATE CLIENTT SET DATEINSCRIPTION = SYSDATE WHERE IDCLIENT = :id");
+    query.bindValue(":id", id);
+
+    if (query.exec()) {
+        QMessageBox::information(this, "Emprunte OK", "Client " + id + " reconnu !");
+        refreshTable();   // // rafraîchit les bulles vertes
+    } else {
+        QMessageBox::warning(this, "Erreur", "Client introuvable !");
+    }
+}
+
