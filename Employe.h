@@ -4,32 +4,23 @@
 #include <QMainWindow>
 
 #include <QDebug>
-#include <QPixmap>
 #include <QTableWidget>
 
-#include <QFile>
-#include <QTextStream>
-#include <QFileDialog>
 #include <QMessageBox>
 #include <QComboBox>
 
 #include <QString>
 #include <QDate>
 #include <QStringList>
-#include <QRandomGenerator>
 #include <QList>
 
 #include <QTableWidgetItem>
-#include <QPixmap>
 #include <QTableWidget>
 #include <QHeaderView>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPushButton>
-#include <QtCharts/QChartView>
-#include <QtCharts/QPieSeries>
-#include <QtCharts/QPieSlice>
-#include <QtCharts/QChart>
+
 #include <QVBoxLayout>
 #include <QFile>
 #include <QTextStream>
