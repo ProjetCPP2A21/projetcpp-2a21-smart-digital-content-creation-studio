@@ -128,3 +128,29 @@ bool Employe::idExiste(int id) {
     query.exec();
     return query.next();  // True si au moins une ligne
 }
+
+bool Employe::chargerParEmail(const QString& email) {
+    QSqlQuery query;
+    query.prepare("SELECT * FROM EMPLOYE WHERE EMAIL = :email");
+    query.bindValue(":email", email);
+
+    if(query.exec() && query.next()) {
+        id_employe = query.value("ID_EMPLOYE").toInt();
+        nom = query.value("NOM").toString();
+        prenom = query.value("PRENOM").toString();
+        mdp = query.value("MDP").toString();
+        poste = query.value("POSTE").toString();
+        questionSecrete = query.value("questionSecrete").toString();
+        reponseSecrete = query.value("reponseSecrete").toString();
+        return true;
+    }
+    return false;
+}
+
+bool Employe::mettreAJourMdp(const QString& nouveau) {
+    QSqlQuery query;
+    query.prepare("UPDATE EMPLOYE SET MDP = :m WHERE ID_EMPLOYE = :id");
+    query.bindValue(":m", nouveau);
+    query.bindValue(":id", id_employe);
+    return query.exec();
+}

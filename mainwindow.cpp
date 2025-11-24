@@ -37,8 +37,9 @@
 #include <QSqlRecord>
 #include <QPdfWriter>
 #include <QPainter>
-
 #include <utility>
+#include <QTemporaryDir>
+
 
 // === SPONSOR ===
 #include "sponsor.h"
@@ -91,46 +92,26 @@ MainWindow::MainWindow(QWidget *parent)
                         "QPushButton:hover { background:#3A3F7A; }"
                         "QPushButton:pressed { background:#1B1D3F; }");
 
-    // Connexions des boutons de navigation
-    connect(ui->pushButton_projet, &QPushButton::clicked, this, [=]() {
-        ui->stackedWidget->setCurrentWidget(ui->page_projet);
-        setActiveButton(ui->pushButton_projet);
-        refreshProjetTable();
-    });
-    connect(ui->pushButton_client, &QPushButton::clicked, this, &MainWindow::on_pushButton_client_clicked);
-    connect(ui->pushButton_employe, &QPushButton::clicked, this, [=]() {
-        ui->stackedWidget->setCurrentWidget(ui->page_employe);
-        setActiveButton(ui->pushButton_employe);
-    });
-    connect(ui->pushButton_media, &QPushButton::clicked, this, [=]() {
-        ui->stackedWidget->setCurrentWidget(ui->page_media);
-        setActiveButton(ui->pushButton_media);
-    });
-    connect(ui->pushButton_feedback, &QPushButton::clicked, this, [=]() {
-        ui->stackedWidget->setCurrentWidget(ui->page_feedback);
-        setActiveButton(ui->pushButton_feedback);
-    });
-    connect(ui->pushButton_categorie, &QPushButton::clicked, this, [=]() {
-        ui->stackedWidget->setCurrentWidget(ui->page_categorie);
-        setActiveButton(ui->pushButton_categorie);
-    });
+
+///////           modificationssss    //////////
     connect(ui->pushButton_quitter, &QPushButton::clicked, this, [=]() {
         ui->stackedWidget_principale->setCurrentWidget(ui->page);
     });
 
-    // Gestion du login
-    connect(ui->lineEdit_mdp_login, &QLineEdit::returnPressed, this, [=]() {
-        ui->stackedWidget_principale->setCurrentIndex(1);
-    });
-    connect(ui->pushButton_mdp_oublie, &QPushButton::clicked, this, [=]() {
-        ui->stackedWidget_login->setCurrentWidget(ui->page_mdp_oublie);
-    });
-    connect(ui->lineEdit_reponse_2, &QLineEdit::returnPressed, this, [=]() {
-        ui->stackedWidget_login->setCurrentWidget(ui->page_nouveau_mdp);
-    });
-    connect(ui->pushButton_valide_mdp, &QPushButton::clicked, this, [=]() {
-        ui->stackedWidget_login->setCurrentWidget(ui->page_login);
-    });
+    // ONGLET ACCES
+    connect(ui->pushButton_projet, &QPushButton::clicked, this, &MainWindow::ouvrirPageProjet);
+    connect(ui->pushButton_client, &QPushButton::clicked, this, &MainWindow::ouvrirPageClient);
+    connect(ui->pushButton_employe, &QPushButton::clicked, this, &MainWindow::ouvrirPageEmploye);
+    connect(ui->pushButton_media, &QPushButton::clicked, this, &MainWindow::ouvrirPageMedia);
+    connect(ui->pushButton_feedback, &QPushButton::clicked, this, &MainWindow::ouvrirPageFeedback);
+    connect(ui->pushButton_categorie, &QPushButton::clicked, this, &MainWindow::ouvrirPageCategorie);
+
+    //login
+    connect(ui->lineEdit_mdp_login, &QLineEdit::returnPressed, this, &MainWindow::login);
+    connect(ui->pushButton_mdp_oublie, &QPushButton::clicked, this, &MainWindow::ouvrirPageMdpOublie);
+    connect(ui->lineEdit_reponse_2, &QLineEdit::returnPressed, this, &MainWindow::verifierReponseSecrete);
+    connect(ui->pushButton_valide_mdp, &QPushButton::clicked, this, &MainWindow::validerNouveauMdp);
+
 
     // Logos
     QPixmap pix(":/logo.png");
@@ -355,7 +336,13 @@ void MainWindow::trierParPoste() {
 
 void MainWindow::exportEmployes()
 {
-    QString fileName = QFileDialog::getSaveFileName(this, "Exporter en Excel", "employes.csv", "Fichiers CSV (*.csv);;Tous les fichiers (*.*)");
+    QString fileName = QFileDialog::getSaveFileName(
+        this,
+        "Exporter en Excel",
+        "employes.csv",
+        "Fichiers CSV (*.csv);;Tous les fichiers (*.*)"
+        );
+
     if (fileName.isEmpty()) return;
 
     QFile file(fileName);
@@ -365,22 +352,36 @@ void MainWindow::exportEmployes()
     }
 
     QTextStream out(&file);
+
+    // ----- ENCODAGE UTF-8 + BOM -----
+    out.setEncoding(QStringConverter::Utf8);
+    out << QChar(0xFEFF);  // BOM pour Excel
+
+    // En-têtes
     out << "\"ID\";\"Nom\";\"Prénom\";\"Email\";\"Poste\"\n";
 
-    QSqlQuery query("SELECT id_employe, nom, prenom, email, poste FROM employe");
-    if (query.exec()) {
-        while (query.next()) {
-            out << "\"" << query.value(0).toString() << "\";"
-                << "\"" << query.value(1).toString() << "\";"
-                << "\"" << query.value(2).toString() << "\";"
-                << "\"" << query.value(3).toString() << "\";"
-                << "\"" << query.value(4).toString() << "\"\n";
-        }
+    QSqlQuery query;
+    query.prepare("SELECT id_employe, nom, prenom, email, poste FROM employe");
+
+    if (!query.exec()) {
+        QMessageBox::warning(this, "Erreur", "Impossible d'exécuter la requête d'export.");
+        return;
+    }
+
+    // Lignes
+    while (query.next()) {
+        out << "\"" << query.value(0).toString() << "\";"
+            << "\"" << query.value(1).toString() << "\";"
+            << "\"" << query.value(2).toString() << "\";"
+            << "\"" << query.value(3).toString() << "\";"
+            << "\"" << query.value(4).toString() << "\"\n";
     }
 
     file.close();
     QMessageBox::information(this, "Succès", "Liste exportée avec succès !");
 }
+
+
 
 void MainWindow::afficherStatistiques()
 {
@@ -409,7 +410,26 @@ void MainWindow::afficherStatistiques()
     }
 
     QPieSeries *series = new QPieSeries();
-    QList<QColor> palette = {QColor("#FF7F32"), QColor("#FFAA33"), QColor("#1A237E"), QColor("#512DA8"), QColor("#7E57C2"), QColor("#3949AB")};
+    QList<QColor> palette = {
+        QColor("#FF7F32"), // orange vif
+        QColor("#FFD966"), // jaune pâle tirant sur l'orange
+        QColor("#FFA500"), // orange moyen classique
+        QColor("#1A237E"), // bleu foncé
+        QColor("#512DA8"), // violet foncé
+        QColor("#7E57C2"), // mauve
+        QColor("#3949AB"), // bleu moyen foncé
+        QColor("#FFC266"), // jaune/orangé clair
+        QColor("#FF8C42"), // orange moyen soutenu
+        QColor("#FFB366"), // orange clair
+        QColor("#673AB7"), // violet moyen
+        QColor("#9575CD"), // mauve clair
+        QColor("#4527A0"), // violet profond
+        QColor("#303F9F"), // bleu indigo
+        QColor("#283593"), // bleu foncé
+        QColor("#5C6BC0"), // bleu-violet
+        QColor("#7B1FA2")  // violet profond
+    };
+
 
     QList<QPair<QString, QColor>> legendItems;
     int colorIndex = 0;
@@ -455,6 +475,218 @@ void MainWindow::afficherStatistiques()
     layout->addWidget(chartView);
     ui->statistiques->setLayout(layout);
 }
+
+// login
+void MainWindow::login() {
+    QString email = ui->lineEdit_email_login->text();
+    QString mdp = ui->lineEdit_mdp_login->text();
+
+    Employe emp;
+
+    if(!emp.chargerParEmail(email)) {
+        QMessageBox::warning(this, "Erreur", "Email incorrect.");
+        return;
+    }
+
+    if(emp.getMdp() != mdp) {
+        QMessageBox::warning(this, "Erreur", "Mot de passe incorrect.");
+        return;
+    }
+
+    employeConnecte = emp;
+
+    ui->stackedWidget_principale->setCurrentWidget(ui->page_2);
+
+
+    redirigerSelonDroits();
+
+
+}
+
+
+void MainWindow::ouvrirPageMdpOublie() {
+    QString email = ui->lineEdit_email_login->text().trimmed();
+
+    // Chercher l'employé qui correspond à l'email
+    if(!employeRecup.chargerParEmail(email)) {
+        QMessageBox::warning(this, "Erreur", "Email introuvable.");
+        return;
+    }
+
+    // Remise à zéro des tentatives
+    tentative_mdp_oublie = 0;
+
+
+
+    ui->label_question_secrete->setText(
+        "<span style='font-weight:bold; color:#55007f;'>" +
+        employeRecup.getQuestionSecrete() +
+        "</span>"
+        );
+
+    ui->stackedWidget_login->setCurrentWidget(ui->page_mdp_oublie);
+}
+
+
+void MainWindow::verifierReponseSecrete() {
+
+    if(ui->lineEdit_reponse_2->text() != employeRecup.getReponseSecrete()) {
+
+        tentative_mdp_oublie++;
+
+        if(tentative_mdp_oublie >= 3) {
+            QMessageBox::critical(this, "Erreur", "3 réponses incorrectes. Retour au login.");
+            ui->stackedWidget_login->setCurrentWidget(ui->page_login);
+            return;
+        }
+
+        QMessageBox::warning(this, "Erreur", "Réponse incorrecte.");
+        return;
+    }
+
+    ui->stackedWidget_login->setCurrentWidget(ui->page_nouveau_mdp);
+}
+
+void MainWindow::validerNouveauMdp() {
+    QString nouveauMdp = ui->lineEdit_nouveau_mdp->text();
+
+    if(nouveauMdp.isEmpty()) {
+        QMessageBox::warning(this, "Erreur", "Mot de passe vide.");
+        return;
+    }
+
+    if(employeRecup.mettreAJourMdp(nouveauMdp)) {
+        QMessageBox::information(this, "Succès", "Mot de passe mis à jour !");
+        ui->stackedWidget_login->setCurrentWidget(ui->page_login);
+    } else {
+        QMessageBox::critical(this, "Erreur", "Impossible de mettre à jour le mot de passe.");
+    }
+}
+//gestion des droits d'acces
+bool MainWindow::accesAutorise(QString page) {
+
+    QString poste = employeConnecte.getPoste();
+
+    if(page == "employe")
+        return (poste == "Responsable RH" || poste == "Assistante RH");
+
+    if(page == "projet")
+        return (poste == "Chef de projet" || poste=="Créateur" || poste == "Responsable Marketing Digital");
+
+    if(page == "client")
+        return (poste == "Commercial" || poste == "Chef de projet");
+
+    if(page == "media")
+        return (poste == "Graphiste" || poste == "Web Designer" ||  poste == "Créateur"
+                || poste == "Chef de projet" || poste == "Illustrateur" || poste == "Vidéaste" || poste == "Monteur vidéo");
+
+    if(page == "campagne")
+        return (poste == "Community Manager" ||  poste=="Technicien lumière & plateau" || poste == "Vidéaste" || poste == "Chef de projet"
+                || poste == "Copywriter" || poste == "Responsable Marketing Digital");
+
+    if(page == "sponsor")
+        return (poste == "Responsable financier" || poste == "Comptable"|| poste == "Chef de projet" || poste == "Social Media Manager");
+
+    return false;
+}
+
+void MainWindow::ouvrirPageEmploye() {
+    if(!accesAutorise("employe")) {
+        QMessageBox::warning(this, "Accès refusé", "Vous n'avez pas accès à la page Employe.");
+        return;
+    }
+
+    ui->stackedWidget->setCurrentWidget(ui->page_employe);
+    setActiveButton(ui->pushButton_employe);
+}
+
+void MainWindow::ouvrirPageProjet() {
+    if(!accesAutorise("projet")) {
+        QMessageBox::warning(this, "Accès refusé", "Vous n'avez pas accès à la page Projet.");
+        return;
+    }
+
+    ui->stackedWidget->setCurrentWidget(ui->page_projet);
+    setActiveButton(ui->pushButton_projet);
+}
+
+void MainWindow::ouvrirPageClient() {
+    if(!accesAutorise("client")) {
+        QMessageBox::warning(this, "Accès refusé", "Vous n'avez pas accès à la page Client.");
+        return;
+    }
+
+    ui->stackedWidget->setCurrentWidget(ui->page_client);
+    setActiveButton(ui->pushButton_client);
+}
+
+void MainWindow::ouvrirPageMedia() {
+    if(!accesAutorise("media")) {
+        QMessageBox::warning(this, "Accès refusé", "Vous n'avez pas accès à la page Ressources.");
+        return;
+    }
+
+    ui->stackedWidget->setCurrentWidget(ui->page_media);
+    setActiveButton(ui->pushButton_media);
+}
+
+void MainWindow::ouvrirPageFeedback() {
+    if(!accesAutorise("campagne")) {
+        QMessageBox::warning(this, "Accès refusé", "Vous n'avez pas accès à la page Campagne.");
+        return;
+    }
+
+    ui->stackedWidget->setCurrentWidget(ui->page_feedback);
+    setActiveButton(ui->pushButton_feedback);
+}
+
+void MainWindow::ouvrirPageCategorie() {
+    if(!accesAutorise("sponsor")) {
+        QMessageBox::warning(this, "Accès refusé", "Vous n'avez pas accès à la page Sponsor.");
+        return;
+    }
+
+    ui->stackedWidget->setCurrentWidget(ui->page_categorie);
+    setActiveButton(ui->pushButton_categorie);
+}
+
+void MainWindow::redirigerSelonDroits()
+{
+    // Ordre des pages que tu préfères afficher
+    if (accesAutorise("employe")) {
+        ouvrirPageEmploye();
+        return;
+    }
+
+    if (accesAutorise("projet")) {
+        ouvrirPageProjet();
+        return;
+    }
+
+    if (accesAutorise("client")) {
+        ouvrirPageClient();
+        return;
+    }
+
+    if (accesAutorise("media")) {
+        ouvrirPageMedia();
+        return;
+    }
+
+    if (accesAutorise("campagne")) {
+        ouvrirPageFeedback();
+        return;
+    }
+
+    if (accesAutorise("sponsor")) {
+        ouvrirPageCategorie();
+        return;
+    }
+
+    QMessageBox::critical(this, "Erreur", "Aucune page autorisée pour cet employé !");
+}
+
+
 
 // Gestion Clients
 void MainWindow::refreshClientTable()
@@ -847,11 +1079,7 @@ void MainWindow::on_pushButton_8_clicked()
     dialog->exec();
 }
 
-void MainWindow::on_pushButton_client_clicked()
-{
-    ui->stackedWidget->setCurrentWidget(ui->page_client);
-    refreshClientTable();
-}
+
 
 // Gestion Projets
 void MainWindow::setupProjetTable()

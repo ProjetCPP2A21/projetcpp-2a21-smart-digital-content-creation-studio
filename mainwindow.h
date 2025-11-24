@@ -54,6 +54,18 @@ private slots:
     void exportEmployes();
     void afficherStatistiques();
     void onItemChanged(QTableWidgetItem *item);
+       // ******* login ********
+    void login();
+    void ouvrirPageMdpOublie();
+    void verifierReponseSecrete();
+    void validerNouveauMdp();
+
+    void ouvrirPageProjet();
+    void ouvrirPageClient();
+    void ouvrirPageEmploye();
+    void ouvrirPageMedia();
+    void ouvrirPageFeedback();
+    void ouvrirPageCategorie();
 
     // Clients
     void on_tableClients_6_cellClicked(int row, int column);
@@ -75,9 +87,6 @@ private slots:
     void on_btnAnnulerModifProjet_clicked();
     void on_tableProjets_cellClicked(int row, int column);
 
-
-    // Navigation
-    void on_pushButton_client_clicked();
 
     // ==== SPONSOR ====
     void on_ajouterButton_2_clicked();
@@ -107,5 +116,11 @@ private:
     void actualiserSponsorTable();
     bool validateSponsorInputs();
     void clearSponsorFields();
+    // ***** login *****
+    bool accesAutorise(QString page);
+    Employe employeConnecte;
+    Employe employeRecup;
+    int tentative_mdp_oublie = 0;
+    void redirigerSelonDroits();
 };
 #endif // MAINWINDOW_H

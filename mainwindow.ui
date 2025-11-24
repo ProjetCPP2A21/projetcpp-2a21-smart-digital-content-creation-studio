@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1425</width>
+    <width>1428</width>
     <height>690</height>
    </rect>
   </property>
@@ -17,14 +17,14 @@
    <widget class="QStackedWidget" name="stackedWidget_principale">
     <property name="geometry">
      <rect>
-      <x>20</x>
-      <y>20</y>
+      <x>0</x>
+      <y>0</y>
       <width>1431</width>
       <height>701</height>
      </rect>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="page">
      <widget class="QStackedWidget" name="stackedWidget_login">
@@ -69,7 +69,7 @@ QStackedWidget QPushButton:hover {
 </string>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="page_login">
        <widget class="QLabel" name="label_mdp_login">
@@ -80,6 +80,10 @@ QStackedWidget QPushButton:hover {
           <width>131</width>
           <height>20</height>
          </rect>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">label-&gt;setAutoFillBackground(false);
+</string>
         </property>
         <property name="text">
          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#55007f;&quot;&gt;mots de passe:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -133,6 +137,10 @@ QStackedWidget QPushButton:hover {
           <height>51</height>
          </rect>
         </property>
+        <property name="styleSheet">
+         <string notr="true">label-&gt;setAutoFillBackground(false);
+</string>
+        </property>
         <property name="text">
          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:26pt; font-weight:700; color:#ffaa00;&quot;&gt;Connexion&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
@@ -145,6 +153,10 @@ QStackedWidget QPushButton:hover {
           <width>63</width>
           <height>20</height>
          </rect>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">label-&gt;setAutoFillBackground(false);
+</string>
         </property>
         <property name="text">
          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#55007f;&quot;&gt;Email:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -195,7 +207,7 @@ QStackedWidget QPushButton:hover {
          <set>Qt::AlignmentFlag::AlignCenter</set>
         </property>
        </widget>
-       <widget class="QLabel" name="label_36">
+       <widget class="QLabel" name="label_question_secrete">
         <property name="geometry">
          <rect>
           <x>110</x>
@@ -204,8 +216,12 @@ QStackedWidget QPushButton:hover {
           <height>71</height>
          </rect>
         </property>
+        <property name="styleSheet">
+         <string notr="true">label-&gt;setAutoFillBackground(false);
+</string>
+        </property>
         <property name="text">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:12pt; font-weight:700; color:#ffffff;&quot;&gt;quel est le nom de votre premier &lt;/span&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:12pt; font-weight:700; color:#ffffff;&quot;&gt;animal de compagnie ?&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -222,8 +238,12 @@ QStackedWidget QPushButton:hover {
           <height>31</height>
          </rect>
         </property>
+        <property name="styleSheet">
+         <string notr="true">label-&gt;setAutoFillBackground(false);
+</string>
+        </property>
         <property name="text">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt; font-weight:700; color:#ffffff;&quot;&gt;nouveau mot de passe&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt; font-weight:700; color:#55007f;&quot;&gt;nouveau mot de passe&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -267,10 +287,10 @@ QStackedWidget QPushButton:hover {
      <widget class="QLabel" name="background">
       <property name="geometry">
        <rect>
-        <x>0</x>
-        <y>0</y>
-        <width>1431</width>
-        <height>691</height>
+        <x>-20</x>
+        <y>-20</y>
+        <width>1451</width>
+        <height>711</height>
        </rect>
       </property>
       <property name="text">
@@ -436,7 +456,7 @@ QPushButton:hover {
        </rect>
       </property>
       <property name="currentIndex">
-       <number>3</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="page_projet">
        <widget class="QPushButton" name="btnSupprimerProjet">
@@ -1882,6 +1902,11 @@ QPushButton:hover {
            </property>
            <item>
             <property name="text">
+             <string>Assistante RH</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
              <string>Chef de projet</string>
             </property>
            </item>
@@ -1897,7 +1922,12 @@ QPushButton:hover {
            </item>
            <item>
             <property name="text">
-             <string>Consultant Cybersécurité</string>
+             <string>Comptable</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Copywriter</string>
             </property>
            </item>
            <item>
@@ -1912,7 +1942,22 @@ QPushButton:hover {
            </item>
            <item>
             <property name="text">
-             <string>Developpeur</string>
+             <string>Illustrateur</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Ingénieur son</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Monteur vidéo</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Responsable financier</string>
             </property>
            </item>
            <item>
@@ -1932,7 +1977,22 @@ QPushButton:hover {
            </item>
            <item>
             <property name="text">
+             <string>Social Media Manager</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Technicien lumière &amp; plateau</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
              <string>Vidéaste</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Web Designer</string>
             </property>
            </item>
           </widget>
