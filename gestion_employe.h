@@ -38,6 +38,7 @@
 #include <QSqlQuery>
 #include <QSqlQueryModel>
 
+#include <QTemporaryDir>
 
 QT_BEGIN_NAMESPACE
 

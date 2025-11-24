@@ -265,9 +265,7 @@ void gestion_employe::exportEmployes()
         "Fichiers CSV (*.csv);;Tous les fichiers (*.*)"
         );
 
-    if (fileName.isEmpty()) {
-        return;
-    }
+    if (fileName.isEmpty()) return;
 
     QFile file(fileName);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
@@ -277,20 +275,22 @@ void gestion_employe::exportEmployes()
 
     QTextStream out(&file);
 
-    // en-têtes
+    // ----- ENCODAGE UTF-8 + BOM -----
+    out.setEncoding(QStringConverter::Utf8);
+    out << QChar(0xFEFF);  // BOM pour Excel
+
+    // En-têtes
     out << "\"ID\";\"Nom\";\"Prénom\";\"Email\";\"Poste\"\n";
 
-    // requête SQL
     QSqlQuery query;
     query.prepare("SELECT id_employe, nom, prenom, email, poste FROM employe");
 
     if (!query.exec()) {
-        qDebug() << "Erreur query export:" << query.lastError().text();
         QMessageBox::warning(this, "Erreur", "Impossible d'exécuter la requête d'export.");
         return;
     }
 
-    // écrire les lignes
+    // Lignes
     while (query.next()) {
         out << "\"" << query.value(0).toString() << "\";"
             << "\"" << query.value(1).toString() << "\";"
