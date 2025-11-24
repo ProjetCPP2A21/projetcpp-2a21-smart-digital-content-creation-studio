@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file>maptunisie.png</file>
+    </qresource>
+</RCC>

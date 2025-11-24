@@ -1,17 +1,18 @@
 #ifndef GESTIONCLIENT_H
 #define GESTIONCLIENT_H
 
-#include <QSerialPort>
-#include <QSerialPortInfo>
+
+#include "bubblemapwindow.h"
+
 
 
 #include <QWidget>
 
 namespace Ui {
-class GestionClient;   // ✅ c’est bien GestionClient
+class GestionClient;
 }
 
-class GestionClient : public QWidget    //  QWidget, pas QMainWindow
+class GestionClient : public QWidget
 {
     Q_OBJECT
 
@@ -25,28 +26,21 @@ private slots:
     void on_btnModifier_3_clicked();
     void on_btnSupprimer_3_clicked();
     void on_leSearch_6_textChanged(const QString &text);
-    void on_pushButton_7_clicked();  // export CSV
-    void on_pushButton_9_clicked();  // Trier
-    void on_pushButton_8_clicked();  // stats
-    void on_pushButton_6_clicked();  // PDF inactifs
+    void on_pushButton_7_clicked();
+    void on_pushButton_9_clicked();
+    void on_pushButton_8_clicked();
+    void on_pushButton_6_clicked();
 
-    //-----------------ARDUINO----------------------
-    void readArduinoData();
-    void activerClient(QString id);
-    void envoyerQtReady();               // OK ici
-    void verifierSynchronisation(int);   // OK ici
+
+    void on_pushButton_10_clicked();
+
+    void on_pushButton_11_clicked();
+
 
 private:
     Ui::GestionClient *ui;
     void refreshTable();
-
-
-    //-----------------ARDUINO----------------------
-    //initialisation port arduino
-    QSerialPort *arduino;
-
-
-
+    BubbleMapWindow *mapWindow;
 };
 
 #endif // GESTIONCLIENT_H

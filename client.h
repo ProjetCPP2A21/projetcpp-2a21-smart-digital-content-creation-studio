@@ -15,12 +15,12 @@ private:
     QString secteur;
     QString pays;
     QDate dateInscription;
-    QString etat;   // nouvelle colonne
-    int fingerID; //empreinte
+    QString etat;
 
 public:
     Client();
-    Client(int id, QString nom, QString email, QString telephone, QString secteur, QString pays, QDate dateInscription, int fingerID = -1);
+    Client(int id, QString nom, QString email, QString telephone,
+           QString secteur, QString pays, QDate dateInscription);
 
     // CRUD
     bool ajouter();
@@ -28,12 +28,8 @@ public:
     bool supprimer(int id);
     bool modifier();
 
-    // optional getters ans setters
-    QString getEtat() const { return etat; }
-    void setFingerID(int f) { fingerID = f; }
-    int getFingerID() const { return fingerID; }
     int getId() const { return id; }
-
+    QString getEtat() const { return etat; }
 };
 
 #endif // CLIENT_H

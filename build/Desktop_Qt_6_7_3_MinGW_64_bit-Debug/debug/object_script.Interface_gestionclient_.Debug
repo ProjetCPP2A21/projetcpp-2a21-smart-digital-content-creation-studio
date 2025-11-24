@@ -1,0 +1,10 @@
+debug/bubblemapwidget.o
+debug/bubblemapwindow.o
+debug/client.o
+debug/connection.o
+debug/main.o
+debug/gestionclient.o
+debug/qrc_Ressource.o
+debug/moc_bubblemapwidget.o
+debug/moc_bubblemapwindow.o
+debug/moc_gestionclient.o

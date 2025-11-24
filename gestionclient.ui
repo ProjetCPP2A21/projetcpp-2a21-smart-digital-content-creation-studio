@@ -13,8 +13,8 @@
   <widget class="QGroupBox" name="groupBox_2">
    <property name="geometry">
     <rect>
-     <x>0</x>
-     <y>30</y>
+     <x>10</x>
+     <y>40</y>
      <width>431</width>
      <height>611</height>
     </rect>
@@ -254,43 +254,43 @@ QGroupBox QComboBox::down-arrow {
         </font>
        </property>
        <property name="text">
-        <string>Pays :</string>
+        <string>Ville :</string>
        </property>
       </widget>
      </item>
      <item row="12" column="1">
       <widget class="QComboBox" name="cbPays_6">
        <property name="placeholderText">
-        <string>Pays</string>
+        <string>Ville</string>
        </property>
        <item>
         <property name="text">
-         <string>Pays...</string>
+         <string>Ville...</string>
         </property>
        </item>
        <item>
         <property name="text">
-         <string>Tunisie</string>
+         <string>Tunis</string>
         </property>
        </item>
        <item>
         <property name="text">
-         <string>Algérie</string>
+         <string>Bizerte</string>
         </property>
        </item>
        <item>
         <property name="text">
-         <string>France</string>
+         <string>Sousse</string>
         </property>
        </item>
        <item>
         <property name="text">
-         <string>Italie</string>
+         <string>Zaghouan</string>
         </property>
        </item>
        <item>
         <property name="text">
-         <string>Allemagne</string>
+         <string>Nabeul</string>
         </property>
        </item>
       </widget>
@@ -362,8 +362,8 @@ QGroupBox QComboBox::down-arrow {
   <widget class="QWidget" name="layoutWidget_2">
    <property name="geometry">
     <rect>
-     <x>440</x>
-     <y>10</y>
+     <x>450</x>
+     <y>20</y>
      <width>771</width>
      <height>731</height>
     </rect>
@@ -487,6 +487,46 @@ QPushButton:hover {
         </property>
        </widget>
       </item>
+      <item>
+       <widget class="QPushButton" name="pushButton_11">
+        <property name="styleSheet">
+         <string notr="true">QPushButton {
+    background: #6A0DAD;
+    color: white;
+    border: 1px solid #4B0082;
+    border-radius: 6px;
+    padding: 5px 10px;
+}
+
+QPushButton:hover {
+    background: #1B1B3A;
+}</string>
+        </property>
+        <property name="text">
+         <string>Fiche Client</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="pushButton_10">
+        <property name="styleSheet">
+         <string notr="true">QPushButton {
+    background: #6A0DAD;
+    color: white;
+    border: 1px solid #4B0082;
+    border-radius: 6px;
+    padding: 5px 10px;
+}
+
+QPushButton:hover {
+    background: #1B1B3A;
+}</string>
+        </property>
+        <property name="text">
+         <string>Map Clients</string>
+        </property>
+       </widget>
+      </item>
      </layout>
     </item>
     <item>
@@ -505,7 +545,7 @@ QPushButton:hover {
 }</string>
       </property>
       <property name="columnCount">
-       <number>9</number>
+       <number>8</number>
       </property>
       <column>
        <property name="text">
@@ -539,17 +579,12 @@ QPushButton:hover {
       </column>
       <column>
        <property name="text">
-        <string>Pays</string>
+        <string>Ville</string>
        </property>
       </column>
       <column>
        <property name="text">
         <string>DateCréation</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>ID Empreinte</string>
        </property>
       </column>
      </widget>

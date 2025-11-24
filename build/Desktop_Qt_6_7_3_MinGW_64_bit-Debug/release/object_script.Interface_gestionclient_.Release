@@ -1,0 +1,10 @@
+release/bubblemapwidget.o
+release/bubblemapwindow.o
+release/client.o
+release/connection.o
+release/main.o
+release/gestionclient.o
+release/qrc_Ressource.o
+release/moc_bubblemapwidget.o
+release/moc_bubblemapwindow.o
+release/moc_gestionclient.o

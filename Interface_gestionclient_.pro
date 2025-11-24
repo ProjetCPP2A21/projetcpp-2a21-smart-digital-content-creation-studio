@@ -1,35 +1,28 @@
-QT       += core gui
-
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+QT       += core gui widgets sql charts quick quick3d quickwidgets
 
 CONFIG += c++17
+CONFIG -= console
+CONFIG -= app_bundle
+QT += quick quick3d widgets gui core
 
-# You can make your code fail to compile if it uses deprecated APIs.
-# In order to do so, uncomment the following line.
-#DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    bubblemapwidget.cpp \
+    bubblemapwindow.cpp \
     client.cpp \
     connection.cpp \
     main.cpp \
     gestionclient.cpp
 
 HEADERS += \
+    bubblemapwidget.h \
+    bubblemapwindow.h \
     client.h \
     connection.h \
-    gestionclient.h
+    gestionclient.h \
 
 FORMS += \
     gestionclient.ui
 
-# Default rules for deployment.
-qnx: target.path = /tmp/$${TARGET}/bin
-else: unix:!android: target.path = /opt/$${TARGET}/bin
-!isEmpty(target.path): INSTALLS += target
-QT += sql
-CONFIG += console
-CONFIG -= app_bundle
-
-QT += charts
-QT += serialport
-
+RESOURCES += \
+    Ressource.qrc

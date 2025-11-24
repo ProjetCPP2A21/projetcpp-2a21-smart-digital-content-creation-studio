@@ -58,6 +58,8 @@ public:
     QPushButton *pushButton_7;
     QPushButton *pushButton_8;
     QPushButton *pushButton_6;
+    QPushButton *pushButton_11;
+    QPushButton *pushButton_10;
     QTableWidget *tableClients_6;
 
     void setupUi(QWidget *GestionClient)
@@ -67,7 +69,7 @@ public:
         GestionClient->resize(1231, 661);
         groupBox_2 = new QGroupBox(GestionClient);
         groupBox_2->setObjectName("groupBox_2");
-        groupBox_2->setGeometry(QRect(0, 30, 431, 611));
+        groupBox_2->setGeometry(QRect(10, 40, 431, 611));
         groupBox_2->setStyleSheet(QString::fromUtf8("QGroupBox {\n"
 "    border: 2px solid #A64B00;\n"
 "    border-radius: 8px;\n"
@@ -248,7 +250,7 @@ public:
         btnSupprimer_3->setGeometry(QRect(290, 550, 111, 31));
         layoutWidget_2 = new QWidget(GestionClient);
         layoutWidget_2->setObjectName("layoutWidget_2");
-        layoutWidget_2->setGeometry(QRect(440, 10, 771, 731));
+        layoutWidget_2->setGeometry(QRect(450, 20, 771, 731));
         verticalLayout_5 = new QVBoxLayout(layoutWidget_2);
         verticalLayout_5->setObjectName("verticalLayout_5");
         verticalLayout_5->setContentsMargins(0, 0, 0, 0);
@@ -350,12 +352,44 @@ public:
 
         horizontalLayout_4->addWidget(pushButton_6);
 
+        pushButton_11 = new QPushButton(layoutWidget_2);
+        pushButton_11->setObjectName("pushButton_11");
+        pushButton_11->setStyleSheet(QString::fromUtf8("QPushButton {\n"
+"    background: #6A0DAD;\n"
+"    color: white;\n"
+"    border: 1px solid #4B0082;\n"
+"    border-radius: 6px;\n"
+"    padding: 5px 10px;\n"
+"}\n"
+"\n"
+"QPushButton:hover {\n"
+"    background: #1B1B3A;\n"
+"}"));
+
+        horizontalLayout_4->addWidget(pushButton_11);
+
+        pushButton_10 = new QPushButton(layoutWidget_2);
+        pushButton_10->setObjectName("pushButton_10");
+        pushButton_10->setStyleSheet(QString::fromUtf8("QPushButton {\n"
+"    background: #6A0DAD;\n"
+"    color: white;\n"
+"    border: 1px solid #4B0082;\n"
+"    border-radius: 6px;\n"
+"    padding: 5px 10px;\n"
+"}\n"
+"\n"
+"QPushButton:hover {\n"
+"    background: #1B1B3A;\n"
+"}"));
+
+        horizontalLayout_4->addWidget(pushButton_10);
+
 
         verticalLayout_5->addLayout(horizontalLayout_4);
 
         tableClients_6 = new QTableWidget(layoutWidget_2);
-        if (tableClients_6->columnCount() < 9)
-            tableClients_6->setColumnCount(9);
+        if (tableClients_6->columnCount() < 8)
+            tableClients_6->setColumnCount(8);
         QTableWidgetItem *__qtablewidgetitem = new QTableWidgetItem();
         tableClients_6->setHorizontalHeaderItem(0, __qtablewidgetitem);
         QTableWidgetItem *__qtablewidgetitem1 = new QTableWidgetItem();
@@ -372,8 +406,6 @@ public:
         tableClients_6->setHorizontalHeaderItem(6, __qtablewidgetitem6);
         QTableWidgetItem *__qtablewidgetitem7 = new QTableWidgetItem();
         tableClients_6->setHorizontalHeaderItem(7, __qtablewidgetitem7);
-        QTableWidgetItem *__qtablewidgetitem8 = new QTableWidgetItem();
-        tableClients_6->setHorizontalHeaderItem(8, __qtablewidgetitem8);
         tableClients_6->setObjectName("tableClients_6");
         tableClients_6->setStyleSheet(QString::fromUtf8("QGroupBox {\n"
 "    border: 2px solid #A64B00;\n"
@@ -386,7 +418,7 @@ public:
 "    );\n"
 "\n"
 "}"));
-        tableClients_6->setColumnCount(9);
+        tableClients_6->setColumnCount(8);
 
         verticalLayout_5->addWidget(tableClients_6);
 
@@ -418,15 +450,15 @@ public:
         cbSecteur_6->setItemText(5, QCoreApplication::translate("GestionClient", "\303\211dition & Contenu \303\251crit", nullptr));
 
         cbSecteur_6->setPlaceholderText(QCoreApplication::translate("GestionClient", "Secteur", nullptr));
-        label_59->setText(QCoreApplication::translate("GestionClient", "Pays :", nullptr));
-        cbPays_6->setItemText(0, QCoreApplication::translate("GestionClient", "Pays...", nullptr));
-        cbPays_6->setItemText(1, QCoreApplication::translate("GestionClient", "Tunisie", nullptr));
-        cbPays_6->setItemText(2, QCoreApplication::translate("GestionClient", "Alg\303\251rie", nullptr));
-        cbPays_6->setItemText(3, QCoreApplication::translate("GestionClient", "France", nullptr));
-        cbPays_6->setItemText(4, QCoreApplication::translate("GestionClient", "Italie", nullptr));
-        cbPays_6->setItemText(5, QCoreApplication::translate("GestionClient", "Allemagne", nullptr));
+        label_59->setText(QCoreApplication::translate("GestionClient", "Ville :", nullptr));
+        cbPays_6->setItemText(0, QCoreApplication::translate("GestionClient", "Ville...", nullptr));
+        cbPays_6->setItemText(1, QCoreApplication::translate("GestionClient", "Tunis", nullptr));
+        cbPays_6->setItemText(2, QCoreApplication::translate("GestionClient", "Bizerte", nullptr));
+        cbPays_6->setItemText(3, QCoreApplication::translate("GestionClient", "Sousse", nullptr));
+        cbPays_6->setItemText(4, QCoreApplication::translate("GestionClient", "Zaghouan", nullptr));
+        cbPays_6->setItemText(5, QCoreApplication::translate("GestionClient", "Nabeul", nullptr));
 
-        cbPays_6->setPlaceholderText(QCoreApplication::translate("GestionClient", "Pays", nullptr));
+        cbPays_6->setPlaceholderText(QCoreApplication::translate("GestionClient", "Ville", nullptr));
         label_60->setText(QCoreApplication::translate("GestionClient", "Date d'Inscription :", nullptr));
         deDate_6->setDisplayFormat(QCoreApplication::translate("GestionClient", "yyyy-MM-dd", nullptr));
         btnModifier_3->setText(QCoreApplication::translate("GestionClient", "Modifier", nullptr));
@@ -437,6 +469,8 @@ public:
         pushButton_7->setText(QCoreApplication::translate("GestionClient", "Export PDF", nullptr));
         pushButton_8->setText(QCoreApplication::translate("GestionClient", "Statistiques", nullptr));
         pushButton_6->setText(QCoreApplication::translate("GestionClient", "Clients Inactifs", nullptr));
+        pushButton_11->setText(QCoreApplication::translate("GestionClient", "Fiche Client", nullptr));
+        pushButton_10->setText(QCoreApplication::translate("GestionClient", "Map Clients", nullptr));
         QTableWidgetItem *___qtablewidgetitem = tableClients_6->horizontalHeaderItem(0);
         ___qtablewidgetitem->setText(QCoreApplication::translate("GestionClient", "Activit\303\251", nullptr));
         QTableWidgetItem *___qtablewidgetitem1 = tableClients_6->horizontalHeaderItem(1);
@@ -450,11 +484,9 @@ public:
         QTableWidgetItem *___qtablewidgetitem5 = tableClients_6->horizontalHeaderItem(5);
         ___qtablewidgetitem5->setText(QCoreApplication::translate("GestionClient", "SecteurActivit\303\251", nullptr));
         QTableWidgetItem *___qtablewidgetitem6 = tableClients_6->horizontalHeaderItem(6);
-        ___qtablewidgetitem6->setText(QCoreApplication::translate("GestionClient", "Pays", nullptr));
+        ___qtablewidgetitem6->setText(QCoreApplication::translate("GestionClient", "Ville", nullptr));
         QTableWidgetItem *___qtablewidgetitem7 = tableClients_6->horizontalHeaderItem(7);
         ___qtablewidgetitem7->setText(QCoreApplication::translate("GestionClient", "DateCr\303\251ation", nullptr));
-        QTableWidgetItem *___qtablewidgetitem8 = tableClients_6->horizontalHeaderItem(8);
-        ___qtablewidgetitem8->setText(QCoreApplication::translate("GestionClient", "ID Empreinte", nullptr));
         (void)GestionClient;
     } // retranslateUi
 

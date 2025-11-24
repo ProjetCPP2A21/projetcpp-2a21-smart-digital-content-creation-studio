@@ -4,10 +4,7 @@
 #include <QSqlError>
 #include <QDebug>
 
-
-
 // CONSTRUCTEURS
-
 Client::Client()
 {
     id = 0;
@@ -17,14 +14,12 @@ Client::Client()
     secteur = "";
     pays = "";
     dateInscription = QDate::currentDate();
-    fingerID = -1;
 
-    // état automatique
     etat = "ACTIF";
 }
 
 Client::Client(int id, QString nom, QString email, QString telephone,
-               QString secteur, QString pays, QDate dateInscription, int fingerID)
+               QString secteur, QString pays, QDate dateInscription)
 {
     this->id = id;
     this->nom = nom;
@@ -33,32 +28,38 @@ Client::Client(int id, QString nom, QString email, QString telephone,
     this->secteur = secteur;
     this->pays = pays;
     this->dateInscription = dateInscription;
-    this->fingerID = fingerID;
 
-    //  CALCUL AUTOMATIQUE DE L’ÉTAT
-    if (dateInscription.daysTo(QDate::currentDate()) > 30)
-        this->etat = "INACTIF";
-    else
-        this->etat = "ACTIF";
+    // Nouveau calcul basé sur le dernier projet
+    QSqlQuery q;
+    q.prepare("SELECT MAX(DATE_FIN - DATE_DEBUT) FROM PROJET WHERE IDCLIENT = :id");
+    q.bindValue(":id", id);
+    q.exec();
+    q.next();
+
+    int duree = q.value(0).toInt();   // peut être NULL → 0
+    etat = (duree >= 30) ? "ACTIF" : "INACTIF";
 }
 
 
-
 // AJOUTER CLIENT
-
 bool Client::ajouter()
 {
     QSqlQuery query;
 
-    QString autoEtat = (dateInscription.daysTo(QDate::currentDate()) > 30)
-                           ? "INACTIF"
-                           : "ACTIF";
+    // Calcule l'état selon les projets
+    QSqlQuery q;
+    q.prepare("SELECT MAX(DATE_FIN - DATE_DEBUT) FROM PROJET WHERE IDCLIENT = :id");
+    q.bindValue(":id", id);
+    q.exec();
+    q.next();
+
+    int duree = q.value(0).toInt();
+    QString autoEtat = (duree >= 30) ? "ACTIF" : "INACTIF";
 
     query.prepare("INSERT INTO CLIENTT "
-                  "(IDCLIENT, NOM, EMAIL, TELEPHONE, SECTEURACTIVITE, PAYS, DATEINSCRIPTION, ETAT, FINGERID) "
-                  "VALUES (:id, :nom, :email, :telephone, :secteuractivite, :pays, "
-                  "TO_DATE(:dateinscription, 'YYYY-MM-DD'), :etat, :fingerID)");
-
+                  "(IDCLIENT, NOM, EMAIL, TELEPHONE, SECTEURACTIVITE, PAYS, DATEINSCRIPTION, ETAT) "
+                  "VALUES (:id, :nom, :email, :telephone, :secteur, :pays, "
+                  "TO_DATE(:dateinscription, 'YYYY-MM-DD'), :etat)");
 
     query.bindValue(":id", id);
     query.bindValue(":nom", nom.trimmed());
@@ -68,17 +69,9 @@ bool Client::ajouter()
     query.bindValue(":pays", pays.trimmed());
     query.bindValue(":dateinscription", dateInscription.toString("yyyy-MM-dd"));
     query.bindValue(":etat", autoEtat);
-    query.bindValue(":fingerID", fingerID);
 
-    if (query.exec()) {
-        qDebug() << " Client ajouté";
-        return true;
-    } else {
-        qDebug() << " Erreur ajout:" << query.lastError().text();
-        return false;
-    }
+    return query.exec();
 }
-
 
 
 // AFFICHER
@@ -93,8 +86,7 @@ QSqlQueryModel* Client::afficher()
                TELEPHONE,
                SECTEURACTIVITE,
                PAYS,
-               DATEINSCRIPTION,
-               FINGERID
+               DATEINSCRIPTION
         FROM CLIENTT
         ORDER BY IDCLIENT ASC
     )");
@@ -106,57 +98,43 @@ QSqlQueryModel* Client::afficher()
     model->setHeaderData(4, Qt::Horizontal, QObject::tr("Secteur"));
     model->setHeaderData(5, Qt::Horizontal, QObject::tr("Pays"));
     model->setHeaderData(6, Qt::Horizontal, QObject::tr("Date d'inscription"));
-    model->setHeaderData(7, Qt::Horizontal, QObject::tr("ID Empreinte"));
 
     return model;
 }
 
-
-
-
-
-
-// SUPPRIMER CLIENT
-
+// SUPPRIMER
 bool Client::supprimer(int id)
 {
     QSqlQuery query;
     query.prepare("DELETE FROM CLIENTT WHERE IDCLIENT = :id");
     query.bindValue(":id", id);
-
-    if (query.exec()) {
-        qDebug() << "✔ Client supprimé";
-        return true;
-    } else {
-        qDebug() << " Erreur suppression:" << query.lastError().text();
-        return false;
-    }
+    return query.exec();
 }
 
-
-
-
-// MODIFIER CLIENT
-
+// MODIFIER
 bool Client::modifier()
 {
     QSqlQuery query;
 
-    QString autoEtat = (dateInscription.daysTo(QDate::currentDate()) > 30)
-                           ? "INACTIF"
-                           : "ACTIF";
+    // Calcule l'état selon les projets
+    QSqlQuery q;
+    q.prepare("SELECT MAX(DATE_FIN - DATE_DEBUT) FROM PROJET WHERE IDCLIENT = :id");
+    q.bindValue(":id", id);
+    q.exec();
+    q.next();
 
-    QString sql = "UPDATE CLIENTT SET "
+    int duree = q.value(0).toInt();
+    QString autoEtat = (duree >= 30) ? "ACTIF" : "INACTIF";
+
+    query.prepare("UPDATE CLIENTT SET "
                   "NOM = :nom, "
                   "EMAIL = :email, "
                   "TELEPHONE = :telephone, "
                   "SECTEURACTIVITE = :secteur, "
                   "PAYS = :pays, "
                   "DATEINSCRIPTION = TO_DATE(:dateInscription, 'YYYY-MM-DD'), "
-                  "ETAT = :etat, "
-                  "FINGERID = :fingerID "
-                  "WHERE IDCLIENT = :id";
-
+                  "ETAT = :etat "
+                  "WHERE IDCLIENT = :id");
 
     query.bindValue(":id", id);
     query.bindValue(":nom", nom);
@@ -164,15 +142,9 @@ bool Client::modifier()
     query.bindValue(":telephone", telephone);
     query.bindValue(":secteur", secteur);
     query.bindValue(":pays", pays);
-    query.bindValue(":dateinscription", dateInscription.toString("yyyy-MM-dd"));
+    query.bindValue(":dateInscription", dateInscription.toString("yyyy-MM-dd"));
     query.bindValue(":etat", autoEtat);
-    query.bindValue(":fingerID", fingerID);
 
-    if (query.exec()) {
-        qDebug() << "Client modifié";
-        return true;
-    } else {
-        qDebug() << " Erreur modification:" << query.lastError().text();
-        return false;
-    }
+    return query.exec();
 }
+
