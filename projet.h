@@ -4,41 +4,48 @@
 #include <QString>
 #include <QSqlQuery>
 #include <QSqlQueryModel>
-#include <QDate>
-#include <QDebug>
+#include <QMap>
+#include <QVector>
+#include <QPair>
 
 class Projet
 {
 private:
-    QString clien;  // CLIEN au lieu de client
+    int idClient;
     double budgetPrevu;
     double budgetRealise;
     QString dateDebut;
     QString dateFin;
+    QString statut;
 
 public:
-    // Constructeurs
     Projet();
-    Projet(QString clien, double budgetPrevu, double budgetRealise, QString dateDebut, QString dateFin);
+    Projet(int idClient, double budgetPrevu, double budgetRealise,
+           QString dateDebut, QString dateFin, QString statut = "En cours");
 
-    // Getters
-    QString getClien() const { return clien; }
+    int getIdClient() const { return idClient; }
     double getBudgetPrevu() const { return budgetPrevu; }
     double getBudgetRealise() const { return budgetRealise; }
     QString getDateDebut() const { return dateDebut; }
     QString getDateFin() const { return dateFin; }
+    QString getStatut() const { return statut; }
 
-    // Setters
-    void setClien(QString clien) { this->clien = clien; }
-    void setBudgetPrevu(double budget) { this->budgetPrevu = budget; }
-    void setBudgetRealise(double budget) { this->budgetRealise = budget; }
-    void setDateDebut(QString date) { this->dateDebut = date; }
-    void setDateFin(QString date) { this->dateFin = date; }
+    void setIdClient(int id) { idClient = id; }
+    void setBudgetPrevu(double b) { budgetPrevu = b; }
+    void setBudgetRealise(double b) { budgetRealise = b; }
+    void setDateDebut(QString d) { dateDebut = d; }
+    void setDateFin(QString d) { dateFin = d; }
+    void setStatut(QString s) { statut = s; }
 
-    // Fonctionnalités CRUD
     bool ajouter();
-    bool supprimer(QString clien);
+    bool modifier(int idClientAncien);
+    bool supprimer(int idClient);
     QSqlQueryModel* afficher();
+    QSqlQueryModel* rechercher(const QString& motCle);
+    static bool existeClient(int idClient);
+
+    static QMap<QString, double> statistiquesPlagesBudget();
+    static QVector<QPair<QString, int>> compterProjetsParPlageBudget();
 };
 
 #endif // PROJET_H

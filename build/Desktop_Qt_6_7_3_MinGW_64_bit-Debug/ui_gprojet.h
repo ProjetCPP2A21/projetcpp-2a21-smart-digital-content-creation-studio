@@ -11,6 +11,7 @@
 
 #include <QtCore/QVariant>
 #include <QtWidgets/QApplication>
+#include <QtWidgets/QCalendarWidget>
 #include <QtWidgets/QGroupBox>
 #include <QtWidgets/QHeaderView>
 #include <QtWidgets/QLabel>
@@ -34,7 +35,7 @@ public:
     QWidget *acceuil;
     QGroupBox *groupBox;
     QLabel *lineEdit_ajoute;
-    QLineEdit *nomLineEdit;
+    QLineEdit *idClientLineEdit;
     QLabel *label_nom;
     QPushButton *addProjectButton;
     QLabel *label_nom_3;
@@ -45,6 +46,8 @@ public:
     QLineEdit *budgetRealiseLineEdit;
     QLabel *label_nom_6;
     QLineEdit *budgetPrevuLineEdit;
+    QLabel *label_nom_7;
+    QLineEdit *statutLineEdit;
     QGroupBox *groupBox_recherche;
     QScrollArea *scrollArea;
     QWidget *scrollAreaWidgetContents;
@@ -53,9 +56,18 @@ public:
     QPushButton *sortByDateButton;
     QPushButton *sortByBudgetButton;
     QLabel *label_nom_2;
-    QLabel *typeLineEdit;
+    QPushButton *sortByBudgetButton_2;
+    QLineEdit *searchLineEdit;
     QPushButton *deleteProjectButton;
     QLineEdit *deleteLineEdit;
+    QPushButton *modifButton;
+    QPushButton *cancelModificationButton;
+    QPushButton *refreshButton;
+    QCalendarWidget *calendarButton;
+    QPushButton *calculateDaysButton;
+    QPushButton *statsBudgetButton;
+    QPushButton *chatbotButton;
+    QPushButton *exportPdfButton;
     QWidget *statistiques;
     QLabel *statistique;
     QMenuBar *menubar;
@@ -80,20 +92,20 @@ public:
         acceuil->setObjectName("acceuil");
         groupBox = new QGroupBox(acceuil);
         groupBox->setObjectName("groupBox");
-        groupBox->setGeometry(QRect(10, 80, 441, 491));
+        groupBox->setGeometry(QRect(10, 40, 441, 531));
         groupBox->setStyleSheet(QString::fromUtf8("background-color: #1E1E2F; color: white; QHeaderView::section { background-color: #5500FF; color: white; }."));
         lineEdit_ajoute = new QLabel(groupBox);
         lineEdit_ajoute->setObjectName("lineEdit_ajoute");
         lineEdit_ajoute->setGeometry(QRect(110, 10, 211, 31));
-        nomLineEdit = new QLineEdit(groupBox);
-        nomLineEdit->setObjectName("nomLineEdit");
-        nomLineEdit->setGeometry(QRect(10, 70, 411, 28));
+        idClientLineEdit = new QLineEdit(groupBox);
+        idClientLineEdit->setObjectName("idClientLineEdit");
+        idClientLineEdit->setGeometry(QRect(10, 70, 411, 28));
         label_nom = new QLabel(groupBox);
         label_nom->setObjectName("label_nom");
         label_nom->setGeometry(QRect(10, 40, 211, 20));
         addProjectButton = new QPushButton(groupBox);
         addProjectButton->setObjectName("addProjectButton");
-        addProjectButton->setGeometry(QRect(120, 420, 161, 29));
+        addProjectButton->setGeometry(QRect(120, 470, 161, 29));
         addProjectButton->setStyleSheet(QString::fromUtf8(""));
         label_nom_3 = new QLabel(groupBox);
         label_nom_3->setObjectName("label_nom_3");
@@ -119,6 +131,12 @@ public:
         budgetPrevuLineEdit = new QLineEdit(groupBox);
         budgetPrevuLineEdit->setObjectName("budgetPrevuLineEdit");
         budgetPrevuLineEdit->setGeometry(QRect(10, 350, 411, 28));
+        label_nom_7 = new QLabel(groupBox);
+        label_nom_7->setObjectName("label_nom_7");
+        label_nom_7->setGeometry(QRect(10, 390, 211, 20));
+        statutLineEdit = new QLineEdit(groupBox);
+        statutLineEdit->setObjectName("statutLineEdit");
+        statutLineEdit->setGeometry(QRect(10, 420, 411, 28));
         groupBox_recherche = new QGroupBox(acceuil);
         groupBox_recherche->setObjectName("groupBox_recherche");
         groupBox_recherche->setGeometry(QRect(460, 190, 761, 371));
@@ -198,20 +216,22 @@ public:
         scrollArea->setWidget(scrollAreaWidgetContents);
         label_rechercher = new QLabel(groupBox_recherche);
         label_rechercher->setObjectName("label_rechercher");
-        label_rechercher->setGeometry(QRect(10, 30, 341, 20));
+        label_rechercher->setGeometry(QRect(10, 30, 161, 20));
         sortByDateButton = new QPushButton(groupBox_recherche);
         sortByDateButton->setObjectName("sortByDateButton");
-        sortByDateButton->setGeometry(QRect(230, 60, 121, 29));
+        sortByDateButton->setGeometry(QRect(460, 40, 121, 29));
         sortByBudgetButton = new QPushButton(groupBox_recherche);
         sortByBudgetButton->setObjectName("sortByBudgetButton");
-        sortByBudgetButton->setGeometry(QRect(590, 60, 151, 29));
+        sortByBudgetButton->setGeometry(QRect(600, 40, 151, 29));
         label_nom_2 = new QLabel(groupBox_recherche);
         label_nom_2->setObjectName("label_nom_2");
         label_nom_2->setGeometry(QRect(20, 60, 71, 20));
-        typeLineEdit = new QLabel(acceuil);
-        typeLineEdit->setObjectName("typeLineEdit");
-        typeLineEdit->setGeometry(QRect(470, 10, 731, 171));
-        typeLineEdit->setAutoFillBackground(false);
+        sortByBudgetButton_2 = new QPushButton(groupBox_recherche);
+        sortByBudgetButton_2->setObjectName("sortByBudgetButton_2");
+        sortByBudgetButton_2->setGeometry(QRect(250, 70, 91, 29));
+        searchLineEdit = new QLineEdit(groupBox_recherche);
+        searchLineEdit->setObjectName("searchLineEdit");
+        searchLineEdit->setGeometry(QRect(210, 30, 181, 28));
         deleteProjectButton = new QPushButton(acceuil);
         deleteProjectButton->setObjectName("deleteProjectButton");
         deleteProjectButton->setGeometry(QRect(1140, 570, 81, 29));
@@ -226,6 +246,54 @@ public:
         deleteLineEdit = new QLineEdit(acceuil);
         deleteLineEdit->setObjectName("deleteLineEdit");
         deleteLineEdit->setGeometry(QRect(950, 570, 181, 28));
+        modifButton = new QPushButton(acceuil);
+        modifButton->setObjectName("modifButton");
+        modifButton->setGeometry(QRect(830, 570, 81, 29));
+        modifButton->setStyleSheet(QString::fromUtf8("QPushButton {\n"
+"    background-color: red;\n"
+"    color: white; /* Texte blanc pour contraste */\n"
+"    border: 1px solid darkred; /* Bordure pour un meilleur rendu */\n"
+"}\n"
+"QPushButton:hover {\n"
+"    background-color: darkred; /* Couleur au survol */\n"
+"}"));
+        cancelModificationButton = new QPushButton(acceuil);
+        cancelModificationButton->setObjectName("cancelModificationButton");
+        cancelModificationButton->setGeometry(QRect(590, 570, 81, 29));
+        cancelModificationButton->setStyleSheet(QString::fromUtf8("QPushButton {\n"
+"    background-color: red;\n"
+"    color: white; /* Texte blanc pour contraste */\n"
+"    border: 1px solid darkred; /* Bordure pour un meilleur rendu */\n"
+"}\n"
+"QPushButton:hover {\n"
+"    background-color: darkred; /* Couleur au survol */\n"
+"}"));
+        refreshButton = new QPushButton(acceuil);
+        refreshButton->setObjectName("refreshButton");
+        refreshButton->setGeometry(QRect(710, 570, 81, 29));
+        refreshButton->setStyleSheet(QString::fromUtf8("QPushButton {\n"
+"    background-color: red;\n"
+"    color: white; /* Texte blanc pour contraste */\n"
+"    border: 1px solid darkred; /* Bordure pour un meilleur rendu */\n"
+"}\n"
+"QPushButton:hover {\n"
+"    background-color: darkred; /* Couleur au survol */\n"
+"}"));
+        calendarButton = new QCalendarWidget(acceuil);
+        calendarButton->setObjectName("calendarButton");
+        calendarButton->setGeometry(QRect(920, 0, 296, 195));
+        calculateDaysButton = new QPushButton(acceuil);
+        calculateDaysButton->setObjectName("calculateDaysButton");
+        calculateDaysButton->setGeometry(QRect(770, 10, 91, 29));
+        statsBudgetButton = new QPushButton(acceuil);
+        statsBudgetButton->setObjectName("statsBudgetButton");
+        statsBudgetButton->setGeometry(QRect(470, 160, 121, 29));
+        chatbotButton = new QPushButton(acceuil);
+        chatbotButton->setObjectName("chatbotButton");
+        chatbotButton->setGeometry(QRect(620, 160, 101, 29));
+        exportPdfButton = new QPushButton(acceuil);
+        exportPdfButton->setObjectName("exportPdfButton");
+        exportPdfButton->setGeometry(QRect(750, 160, 91, 29));
         tabWidget->addTab(acceuil, QString());
         statistiques = new QWidget();
         statistiques->setObjectName("statistiques");
@@ -258,19 +326,27 @@ public:
 #endif // QT_CONFIG(whatsthis)
         groupBox->setTitle(QString());
         lineEdit_ajoute->setText(QCoreApplication::translate("gprojet", "<html><head/><body><p><span style=\" font-size:12pt; font-weight:700; color:#ffaa00;\">formulaire projet</span></p></body></html>", nullptr));
-        label_nom->setText(QCoreApplication::translate("gprojet", "<html><head/><body><p><span style=\" font-weight:700; color:#55007f;\">client:</span></p></body></html>", nullptr));
+        label_nom->setText(QCoreApplication::translate("gprojet", "<html><head/><body><p><span style=\" font-weight:700; color:#55007f;\">id client:</span></p></body></html>", nullptr));
         addProjectButton->setText(QCoreApplication::translate("gprojet", "ajouter", nullptr));
         label_nom_3->setText(QCoreApplication::translate("gprojet", "<html><head/><body><p><span style=\" font-weight:700; color:#55007f;\"> Date debut:</span></p></body></html>", nullptr));
         label_nom_4->setText(QCoreApplication::translate("gprojet", "<html><head/><body><p><span style=\" font-weight:700; color:#55007f;\">Date fin:</span></p></body></html>", nullptr));
         label_nom_5->setText(QCoreApplication::translate("gprojet", "<html><head/><body><p><span style=\" font-weight:700; color:#55007f;\">Budget rialiser:</span></p></body></html>", nullptr));
         label_nom_6->setText(QCoreApplication::translate("gprojet", "<html><head/><body><p><span style=\" font-weight:700; color:#55007f;\">Budget prevu:</span></p></body></html>", nullptr));
+        label_nom_7->setText(QCoreApplication::translate("gprojet", "<html><head/><body><p><span style=\" font-weight:700; color:#55007f;\">staut;</span></p></body></html>", nullptr));
         groupBox_recherche->setTitle(QString());
         label_rechercher->setText(QCoreApplication::translate("gprojet", "<html><head/><body><p><span style=\" font-weight:700; color:#00007f;\">recherche d'un projet</span></p></body></html>", nullptr));
         sortByDateButton->setText(QCoreApplication::translate("gprojet", "Trier par date", nullptr));
         sortByBudgetButton->setText(QCoreApplication::translate("gprojet", "Trier par budget", nullptr));
         label_nom_2->setText(QCoreApplication::translate("gprojet", "<html><head/><body><p><span style=\" font-weight:700; color:#55007f;\">type:</span></p></body></html>", nullptr));
-        typeLineEdit->setText(QString());
+        sortByBudgetButton_2->setText(QCoreApplication::translate("gprojet", "recherche", nullptr));
         deleteProjectButton->setText(QCoreApplication::translate("gprojet", "supprimer", nullptr));
+        modifButton->setText(QCoreApplication::translate("gprojet", "modifier", nullptr));
+        cancelModificationButton->setText(QCoreApplication::translate("gprojet", "annuler ", nullptr));
+        refreshButton->setText(QCoreApplication::translate("gprojet", "Rafra\303\256chir", nullptr));
+        calculateDaysButton->setText(QCoreApplication::translate("gprojet", "Calcul Jours", nullptr));
+        statsBudgetButton->setText(QCoreApplication::translate("gprojet", "statistique", nullptr));
+        chatbotButton->setText(QCoreApplication::translate("gprojet", "chatbot", nullptr));
+        exportPdfButton->setText(QCoreApplication::translate("gprojet", "exporter pdf", nullptr));
         tabWidget->setTabText(tabWidget->indexOf(acceuil), QCoreApplication::translate("gprojet", "       accueil         ", nullptr));
         statistique->setText(QString());
         tabWidget->setTabText(tabWidget->indexOf(statistiques), QCoreApplication::translate("gprojet", "    statistiques    ", nullptr));

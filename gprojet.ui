@@ -49,9 +49,9 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>80</y>
+        <y>40</y>
         <width>441</width>
-        <height>491</height>
+        <height>531</height>
        </rect>
       </property>
       <property name="whatsThis">
@@ -76,7 +76,7 @@
         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:12pt; font-weight:700; color:#ffaa00;&quot;&gt;formulaire projet&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
-      <widget class="QLineEdit" name="nomLineEdit">
+      <widget class="QLineEdit" name="idClientLineEdit">
        <property name="geometry">
         <rect>
          <x>10</x>
@@ -96,14 +96,14 @@
         </rect>
        </property>
        <property name="text">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#55007f;&quot;&gt;client:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#55007f;&quot;&gt;id client:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
       <widget class="QPushButton" name="addProjectButton">
        <property name="geometry">
         <rect>
          <x>120</x>
-         <y>420</y>
+         <y>470</y>
          <width>161</width>
          <height>29</height>
         </rect>
@@ -202,6 +202,29 @@
         <rect>
          <x>10</x>
          <y>350</y>
+         <width>411</width>
+         <height>28</height>
+        </rect>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_nom_7">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>390</y>
+         <width>211</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#55007f;&quot;&gt;staut;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+      </widget>
+      <widget class="QLineEdit" name="statutLineEdit">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>420</y>
          <width>411</width>
          <height>28</height>
         </rect>
@@ -322,7 +345,7 @@ QGroupBox QComboBox::down-arrow {
         <rect>
          <x>10</x>
          <y>30</y>
-         <width>341</width>
+         <width>161</width>
          <height>20</height>
         </rect>
        </property>
@@ -333,8 +356,8 @@ QGroupBox QComboBox::down-arrow {
       <widget class="QPushButton" name="sortByDateButton">
        <property name="geometry">
         <rect>
-         <x>230</x>
-         <y>60</y>
+         <x>460</x>
+         <y>40</y>
          <width>121</width>
          <height>29</height>
         </rect>
@@ -346,8 +369,8 @@ QGroupBox QComboBox::down-arrow {
       <widget class="QPushButton" name="sortByBudgetButton">
        <property name="geometry">
         <rect>
-         <x>590</x>
-         <y>60</y>
+         <x>600</x>
+         <y>40</y>
          <width>151</width>
          <height>29</height>
         </rect>
@@ -369,22 +392,29 @@ QGroupBox QComboBox::down-arrow {
         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#55007f;&quot;&gt;type:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
-     </widget>
-     <widget class="QLabel" name="typeLineEdit">
-      <property name="geometry">
-       <rect>
-        <x>470</x>
-        <y>10</y>
-        <width>731</width>
-        <height>171</height>
-       </rect>
-      </property>
-      <property name="autoFillBackground">
-       <bool>false</bool>
-      </property>
-      <property name="text">
-       <string/>
-      </property>
+      <widget class="QPushButton" name="sortByBudgetButton_2">
+       <property name="geometry">
+        <rect>
+         <x>250</x>
+         <y>70</y>
+         <width>91</width>
+         <height>29</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>recherche</string>
+       </property>
+      </widget>
+      <widget class="QLineEdit" name="searchLineEdit">
+       <property name="geometry">
+        <rect>
+         <x>210</x>
+         <y>30</y>
+         <width>181</width>
+         <height>28</height>
+        </rect>
+       </property>
+      </widget>
      </widget>
      <widget class="QPushButton" name="deleteProjectButton">
       <property name="geometry">
@@ -417,6 +447,137 @@ QPushButton:hover {
         <width>181</width>
         <height>28</height>
        </rect>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="modifButton">
+      <property name="geometry">
+       <rect>
+        <x>830</x>
+        <y>570</y>
+        <width>81</width>
+        <height>29</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QPushButton {
+    background-color: red;
+    color: white; /* Texte blanc pour contraste */
+    border: 1px solid darkred; /* Bordure pour un meilleur rendu */
+}
+QPushButton:hover {
+    background-color: darkred; /* Couleur au survol */
+}</string>
+      </property>
+      <property name="text">
+       <string>modifier</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="cancelModificationButton">
+      <property name="geometry">
+       <rect>
+        <x>590</x>
+        <y>570</y>
+        <width>81</width>
+        <height>29</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QPushButton {
+    background-color: red;
+    color: white; /* Texte blanc pour contraste */
+    border: 1px solid darkred; /* Bordure pour un meilleur rendu */
+}
+QPushButton:hover {
+    background-color: darkred; /* Couleur au survol */
+}</string>
+      </property>
+      <property name="text">
+       <string>annuler </string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="refreshButton">
+      <property name="geometry">
+       <rect>
+        <x>710</x>
+        <y>570</y>
+        <width>81</width>
+        <height>29</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QPushButton {
+    background-color: red;
+    color: white; /* Texte blanc pour contraste */
+    border: 1px solid darkred; /* Bordure pour un meilleur rendu */
+}
+QPushButton:hover {
+    background-color: darkred; /* Couleur au survol */
+}</string>
+      </property>
+      <property name="text">
+       <string>Rafraîchir</string>
+      </property>
+     </widget>
+     <widget class="QCalendarWidget" name="calendarButton">
+      <property name="geometry">
+       <rect>
+        <x>920</x>
+        <y>0</y>
+        <width>296</width>
+        <height>195</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="calculateDaysButton">
+      <property name="geometry">
+       <rect>
+        <x>770</x>
+        <y>10</y>
+        <width>91</width>
+        <height>29</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Calcul Jours</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="statsBudgetButton">
+      <property name="geometry">
+       <rect>
+        <x>470</x>
+        <y>160</y>
+        <width>121</width>
+        <height>29</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>statistique</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="chatbotButton">
+      <property name="geometry">
+       <rect>
+        <x>620</x>
+        <y>160</y>
+        <width>101</width>
+        <height>29</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>chatbot</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="exportPdfButton">
+      <property name="geometry">
+       <rect>
+        <x>750</x>
+        <y>160</y>
+        <width>91</width>
+        <height>29</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>exporter pdf</string>
       </property>
      </widget>
     </widget>

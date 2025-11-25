@@ -1,20 +1,18 @@
-QT += core gui sql
+QT += core gui sql widgets printsupport
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
-
-TARGET = gestionprojet3
+TARGET = artemia
 TEMPLATE = app
 
 SOURCES += main.cpp \
            gprojet.cpp \
            connection.cpp \
-    projet.cpp
-
+           projet.cpp \
+           chatbot.cpp
 
 HEADERS += gprojet.h \
            connection.h \
-    projet.h
-
+           projet.h \
+           chatbot.h
 
 FORMS += gprojet.ui
 

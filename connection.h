@@ -4,14 +4,25 @@
 #include <QSqlDatabase>
 #include <QSqlError>
 #include <QSqlQuery>
-#include <QSqlTableModel>
 
 class Connection
 {
+private:
+    QSqlDatabase db;
+    Connection(); // Constructeur privé pour singleton
+
 public:
-    Connection();
-    bool createconnect(); // crée la connexion à la base
-    QSqlDatabase getDatabase(); // obtenir la connexion
+    // Empêcher la copie
+    Connection(const Connection&) = delete;
+    Connection& operator=(const Connection&) = delete;
+
+    // Méthode singleton
+    static Connection& getInstance();
+
+    // Méthodes de connexion
+    bool createconnect();
+    void closeconnect();
+    QSqlDatabase getDatabase();
 };
 
 #endif // CONNECTION_H
