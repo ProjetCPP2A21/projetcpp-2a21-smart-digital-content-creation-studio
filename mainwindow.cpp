@@ -1,4 +1,5 @@
 #include "client.h"
+#include <QTimer>
 #include "ressource.h"
 #include <QSqlQuery>
 #include <QSqlError>
@@ -54,6 +55,17 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+
+    //clients
+    ui->stackedWidget->setCurrentIndex(0);
+    refreshClientTable();
+    mapWindow = new BubbleMapWindow();
+
+    QTimer *timerRefresh = new QTimer(this);
+    connect(timerRefresh, &QTimer::timeout,
+            this, &MainWindow::refreshClientTable);
+    timerRefresh->start(3000);
+    //finclient
 
 //ressource
     setUpInterface();
@@ -688,25 +700,61 @@ void MainWindow::redirigerSelonDroits()
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // Gestion Clients
+//REFRESH TABLE
 void MainWindow::refreshClientTable()
 {
     Client c;
-    QSqlQueryModel *model = c.afficher();
+    QSqlQueryModel *model = c.getAllClients();
+
     ui->tableClients_6->setRowCount(0);
     ui->tableClients_6->setColumnCount(8);
 
-    QStringList headers = {"Activité", "ID", "Nom", "Email", "Téléphone", "Secteur d'activité", "Pays", "Date d'inscription"};
+    QStringList headers = {
+        "Activité", "ID", "Nom", "Email",
+        "Téléphone", "Secteur d'activité",
+        "Pays", "Date d'inscription"
+    };
     ui->tableClients_6->setHorizontalHeaderLabels(headers);
 
-    QDate today = QDate::currentDate();
-
-    for (int i = 0; i < model->rowCount(); i++) {
+    for (int i = 0; i < model->rowCount(); ++i)
+    {
         ui->tableClients_6->insertRow(i);
 
-        QDate dateInscription = model->data(model->index(i, 6)).toDate();
-        bool inactif = (dateInscription.daysTo(today) > 30);
+        int idClient = model->data(model->index(i, 0)).toInt();
 
+        // Récupération projet via client.cpp (SQL uniquement là-bas)
+        QSqlQuery info = c.getProjetInfo(idClient);
+        info.next();
+        int duree = info.value("duree").toInt();
+        bool enCours = info.value("enCours").toInt();
+        bool inactif = (!enCours && duree < 30);
+
+        //  Bulle statut (colonne 0)
         QWidget *cellWidget = new QWidget();
         QHBoxLayout *layout = new QHBoxLayout(cellWidget);
         layout->setContentsMargins(0, 0, 0, 0);
@@ -714,17 +762,23 @@ void MainWindow::refreshClientTable()
 
         QLabel *bubble = new QLabel();
         bubble->setFixedSize(14, 14);
-        bubble->setStyleSheet(QString("border-radius:7px; background-color:%1;").arg(inactif ? "#E53935" : "#43A047"));
+        bubble->setStyleSheet(QString("border-radius:7px; background-color:%1;")
+                                  .arg(inactif ? "#E53935" : "#43A047"));
         layout->addWidget(bubble);
         ui->tableClients_6->setCellWidget(i, 0, cellWidget);
 
-        for (int j = 0; j < model->columnCount(); j++) {
+        //  Autres colonnes (1 → 7)
+        for (int j = 0; j < model->columnCount(); ++j)
+        {
             QVariant data = model->data(model->index(i, j));
             QString value;
-            if (data.typeId() == QMetaType::QDate || data.typeId() == QMetaType::QDateTime)
+
+            if (data.typeId() == QMetaType::QDate ||
+                data.typeId() == QMetaType::QDateTime)
                 value = data.toDate().toString("yyyy-MM-dd");
             else
                 value = data.toString();
+
             ui->tableClients_6->setItem(i, j + 1, new QTableWidgetItem(value));
         }
     }
@@ -733,17 +787,38 @@ void MainWindow::refreshClientTable()
     ui->tableClients_6->horizontalHeader()->setStretchLastSection(true);
 }
 
+
+
+
+//SELECTION CLIENT TABLE
 void MainWindow::on_tableClients_6_cellClicked(int row, int column)
 {
     Q_UNUSED(column);
+
+    // NE PAS refreshClientTable() ici → ça efface la sélection
+    // refreshClientTable();
+
+    if (row < 0) return;
+
     ui->leId_6->setText(ui->tableClients_6->item(row, 1)->text());
     ui->leNom_6->setText(ui->tableClients_6->item(row, 2)->text());
     ui->leEmail_6->setText(ui->tableClients_6->item(row, 3)->text());
     ui->leTel_6->setText(ui->tableClients_6->item(row, 4)->text());
     ui->cbSecteur_6->setCurrentText(ui->tableClients_6->item(row, 5)->text());
     ui->cbPays_6->setCurrentText(ui->tableClients_6->item(row, 6)->text());
-    ui->deDate_6->setDate(QDate::fromString(ui->tableClients_6->item(row, 7)->text(), "yyyy-MM-dd"));
+
+    // Date
+    QString dateStr = ui->tableClients_6->item(row, 7)->text();
+    QDate d = QDate::fromString(dateStr, "yyyy-MM-dd");
+    if (d.isValid())
+        ui->deDate_6->setDate(d);
 }
+
+
+
+
+
+//AJOUTER
 
 void MainWindow::on_btnAjouter_3_clicked()
 {
@@ -755,6 +830,7 @@ void MainWindow::on_btnAjouter_3_clicked()
     QString pays = ui->cbPays_6->currentText();
     QDate dateInscription = ui->deDate_6->date();
 
+    //  VALIDATIONS
     QRegularExpression regexId("^[0-9]{8}$");
     QRegularExpression regexTel("^[0-9]{8}$");
     QRegularExpression regexNom("^[A-Za-zÀ-ÖØ-öø-ÿ\\s]+$");
@@ -765,43 +841,55 @@ void MainWindow::on_btnAjouter_3_clicked()
         return;
     }
     if (!regexNom.match(nom).hasMatch()) {
-        QMessageBox::warning(this, "Erreur", "Le nom/prénom ne doit contenir que des lettres et espaces.");
+        QMessageBox::warning(this, "Erreur", "Nom invalide.");
         return;
     }
     if (!regexEmail.match(email).hasMatch()) {
-        QMessageBox::warning(this, "Erreur", "Veuillez saisir une adresse e-mail valide.");
+        QMessageBox::warning(this, "Erreur", "Email invalide.");
         return;
     }
     if (!regexTel.match(tel).hasMatch()) {
-        QMessageBox::warning(this, "Erreur", "Le numéro de téléphone doit contenir exactement 8 chiffres.");
+        QMessageBox::warning(this, "Erreur", "Téléphone invalide.");
         return;
     }
 
     int id = idStr.toInt();
-    QSqlQuery check;
-    check.prepare("SELECT COUNT(*) FROM CLIENTT WHERE LOWER(NOM)=LOWER(:nom) OR LOWER(EMAIL)=LOWER(:email) OR TELEPHONE=:tel");
-    check.bindValue(":nom", nom);
-    check.bindValue(":email", email);
-    check.bindValue(":tel", tel);
-    if (!check.exec()) {
-        QMessageBox::critical(this, "Erreur SQL", check.lastError().text());
-        return;
-    }
-    check.next();
-    if (check.value(0).toInt() > 0) {
-        QMessageBox::warning(this, "Doublon détecté", "Ce client existe déjà.");
-        return;
+
+    //  Anti-doublon total (sans SQL direct ici)
+
+    Client checker;
+    QSqlQueryModel *all = checker.getAllClients();
+    for (int i = 0; i < all->rowCount(); ++i)
+    {
+        if (all->data(all->index(i, 0)).toInt() == id)
+        {
+            QMessageBox::warning(this, "Erreur", "Cet ID existe déjà !");
+            return;
+        }
     }
 
+    //  AJOUT
     Client c(id, nom, email, tel, secteur, pays, dateInscription);
+
     if (c.ajouter()) {
-        QMessageBox::information(this, "Succès", "Client ajouté avec succès !");
-        refreshClientTable();
-    } else {
-        QMessageBox::critical(this, "Erreur", "Échec de l'ajout du client !");
+        QMessageBox::information(this, "Succès", "Client ajouté !");
+        refreshClientTable();   // la bonne fonction MainWindow
+
+        // Optionnel : nettoyer les champs
+        ui->leId_6->clear();
+        ui->leNom_6->clear();
+        ui->leEmail_6->clear();
+        ui->leTel_6->clear();
+    }
+    else {
+        QMessageBox::critical(this, "Erreur", "Échec de l'ajout du client.");
     }
 }
 
+
+
+
+//MODIFIER
 void MainWindow::on_btnModifier_3_clicked()
 {
     QString idStr = ui->leId_6->text().trimmed();
@@ -812,144 +900,120 @@ void MainWindow::on_btnModifier_3_clicked()
     QString pays = ui->cbPays_6->currentText();
     QDate dateInscription = ui->deDate_6->date();
 
+
+    //  Vérifier qu’un client est sélectionné
+
+    if (idStr.isEmpty()) {
+        QMessageBox::warning(this, "Erreur", "Sélectionnez un client.");
+        return;
+    }
+
+    //  VALIDATIONS
     QRegularExpression regexId("^[0-9]{8}$");
     QRegularExpression regexTel("^[0-9]{8}$");
     QRegularExpression regexNom("^[A-Za-zÀ-ÖØ-öø-ÿ\\s]+$");
     QRegularExpression regexEmail("^[\\w._%+-]+@[\\w.-]+\\.[A-Za-z]{2,}$");
 
-    if (!regexId.match(idStr).hasMatch()) {
-        QMessageBox::warning(this, "Erreur", "L'ID doit contenir exactement 8 chiffres.");
+    if (!regexId.match(idStr).hasMatch() ||
+        !regexNom.match(nom).hasMatch() ||
+        !regexEmail.match(email).hasMatch() ||
+        !regexTel.match(tel).hasMatch())
+    {
+        QMessageBox::warning(this, "Erreur", "Champs invalides !");
         return;
     }
-    if (!regexNom.match(nom).hasMatch()) {
-        QMessageBox::warning(this, "Erreur", "Le nom/prénom ne doit contenir que des lettres et espaces.");
-        return;
-    }
-    if (!regexEmail.match(email).hasMatch()) {
-        QMessageBox::warning(this, "Erreur", "Veuillez saisir une adresse e-mail valide.");
-        return;
-    }
-    if (!regexTel.match(tel).hasMatch()) {
-        QMessageBox::warning(this, "Erreur", "Le numéro de téléphone doit contenir exactement 8 chiffres.");
-        return;
-    }
+    //  MODIFICATION
 
     int id = idStr.toInt();
-    QSqlQuery check;
-    check.prepare("SELECT COUNT(*) FROM CLIENTT WHERE (LOWER(NOM)=LOWER(:nom) OR LOWER(EMAIL)=LOWER(:email) OR TELEPHONE=:tel) AND IDCLIENT!=:id");
-    check.bindValue(":nom", nom);
-    check.bindValue(":email", email);
-    check.bindValue(":tel", tel);
-    check.bindValue(":id", id);
-    if (!check.exec()) {
-        QMessageBox::critical(this, "Erreur SQL", check.lastError().text());
-        return;
-    }
-    check.next();
-    if (check.value(0).toInt() > 0) {
-        QMessageBox::warning(this, "Doublon détecté", "Un autre client avec ces informations existe déjà !");
-        return;
-    }
-
     Client c(id, nom, email, tel, secteur, pays, dateInscription);
+
     if (c.modifier()) {
-        QMessageBox::information(this, "Succès", "Client modifié avec succès !");
-        refreshClientTable();
-    } else {
-        QMessageBox::critical(this, "Erreur", "Échec de la modification du client !");
+        QMessageBox::information(this, "Succès", "Client modifié !");
+        refreshClientTable();   //  bon nom dans MainWindow
+        //  Mise à jour automatique de la MAP après modification
+        mapWindow->clearClients();
+
+        Client c2;
+        QSqlQueryModel *m = c2.getNomsEtVilles();
+
+        for (int i = 0; i < m->rowCount(); ++i)
+        {
+            QString nom = m->data(m->index(i, 0)).toString().trimmed();
+            QString ville = m->data(m->index(i, 1)).toString().trimmed();
+
+            if (!nom.isEmpty() && !ville.isEmpty())
+                mapWindow->addClient(nom, ville);
+        }
+
+        mapWindow->update();
+
+    }
+    else {
+        QMessageBox::critical(this, "Erreur",
+                              "Échec de la modification.");
     }
 }
 
+
+//SUPPRIMER
 void MainWindow::on_btnSupprimer_3_clicked()
 {
+    // Vérifier la sélection
     if (ui->leId_6->text().isEmpty()) {
-        QMessageBox::warning(this, "Attention", "Renseigne un ID valide à supprimer.");
+        QMessageBox::warning(this, "Erreur",
+                             "Sélectionnez un client.");
         return;
     }
 
     int id = ui->leId_6->text().toInt();
     Client c;
 
+    // Suppression
     if (c.supprimer(id)) {
-        QMessageBox::information(this, "Succès", "Client supprimé avec succès !");
-        refreshClientTable();
-    } else {
-        QMessageBox::critical(this, "Erreur", "Échec de la suppression du client !");
+        QMessageBox::information(this, "Succès", "Client supprimé !");
+        refreshClientTable();   // bon nom pour MainWindow
+
+        // Optionnel : nettoyer le formulaire
+        ui->leId_6->clear();
+        ui->leNom_6->clear();
+        ui->leEmail_6->clear();
+        ui->leTel_6->clear();
+    }
+    else {
+        QMessageBox::critical(this, "Erreur",
+                              "Suppression impossible.");
     }
 }
 
+
+
+
+
+
+
+//RECHERCHE
 void MainWindow::on_leSearch_6_textChanged(const QString &text)
 {
-    QSqlQuery query;
-    query.prepare("SELECT * FROM CLIENTT WHERE LOWER(SECTEURACTIVITE) LIKE LOWER(:rech) ORDER BY IDCLIENT ASC");
-    query.bindValue(":rech", "%" + text + "%");
-    if (!query.exec()) return;
-
-    ui->tableClients_6->setRowCount(0);
-    int row = 0;
-
-    while (query.next()) {
-        ui->tableClients_6->insertRow(row);
-        for (int col = 0; col < 7; col++) {
-            QVariant data = query.value(col);
-            QString value = (data.typeId() == QMetaType::QDate || data.typeId() == QMetaType::QDateTime)
-                                ? data.toDate().toString("yyyy-MM-dd")
-                                : data.toString();
-            ui->tableClients_6->setItem(row, col + 1, new QTableWidgetItem(value));
-        }
-        row++;
-    }
-
-    ui->tableClients_6->resizeColumnsToContents();
-    ui->tableClients_6->horizontalHeader()->setStretchLastSection(true);
-}
-
-void MainWindow::on_pushButton_7_clicked()
-{
-    QString filePath = QFileDialog::getSaveFileName(this, "Exporter les clients", "", "Fichiers CSV (*.csv)");
-    if (filePath.isEmpty()) return;
-
-    QFile file(filePath);
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        QMessageBox::critical(this, "Erreur", "Impossible d'ouvrir le fichier.");
-        return;
-    }
-
-    QTextStream out(&file);
-    out << "ID;Nom;Email;Téléphone;Secteur;Pays;Date d'inscription\n";
-
-    int rowCount = ui->tableClients_6->rowCount();
-    int colCount = ui->tableClients_6->columnCount();
-
-    for (int i = 0; i < rowCount; ++i) {
-        QStringList rowData;
-        for (int j = 1; j < colCount; ++j)
-            rowData << (ui->tableClients_6->item(i, j) ? ui->tableClients_6->item(i, j)->text() : "");
-        out << rowData.join(";") << "\n";
-    }
-
-    file.close();
-    QMessageBox::information(this, "Succès", "Exportation terminée avec succès !");
-}
-
-void MainWindow::on_pushButton_9_clicked()
-{
-    QSqlQueryModel *model = new QSqlQueryModel();
-    model->setQuery("SELECT * FROM CLIENTT ORDER BY DATEINSCRIPTION ASC");
+    Client c;
+    QSqlQueryModel *model = c.rechercheSecteur(text);
 
     ui->tableClients_6->setRowCount(0);
     ui->tableClients_6->setColumnCount(8);
-    QStringList headers = {"Activité", "ID", "Nom", "Email", "Téléphone", "Secteur d'activité", "Pays", "Date d'inscription"};
+
+    // Colonnes
+    QStringList headers = {
+        "Activité", "ID", "Nom", "Email",
+        "Téléphone", "Secteur d'activité",
+        "Pays", "Date d'inscription"
+    };
     ui->tableClients_6->setHorizontalHeaderLabels(headers);
 
-    QDate today = QDate::currentDate();
-
-    for (int i = 0; i < model->rowCount(); i++) {
+    for (int i = 0; i < model->rowCount(); ++i)
+    {
         ui->tableClients_6->insertRow(i);
 
-        QDate dateInscription = model->data(model->index(i, 6)).toDate();
-        bool inactif = (dateInscription.daysTo(today) > 30);
-
+        //  Activité : ici on ne recalcule pas (comme ton commentaire)
+        // Je mets une bulle grise par défaut pour éviter un vide moche
         QWidget *cellWidget = new QWidget();
         QHBoxLayout *layout = new QHBoxLayout(cellWidget);
         layout->setContentsMargins(0, 0, 0, 0);
@@ -957,128 +1021,783 @@ void MainWindow::on_pushButton_9_clicked()
 
         QLabel *bubble = new QLabel();
         bubble->setFixedSize(14, 14);
-        bubble->setStyleSheet(QString("border-radius:7px; background-color:%1;").arg(inactif ? "#E53935" : "#43A047"));
+        bubble->setStyleSheet("border-radius:7px; background-color:#BDBDBD;");
         layout->addWidget(bubble);
         ui->tableClients_6->setCellWidget(i, 0, cellWidget);
 
-        for (int j = 0; j < model->columnCount(); j++) {
+        //  Remplissage des colonnes 1..7
+        for (int j = 0; j < model->columnCount(); ++j)
+        {
             QVariant data = model->data(model->index(i, j));
-            QString value = (data.typeId() == QMetaType::QDate || data.typeId() == QMetaType::QDateTime)
+            QString value = (data.typeId() == QMetaType::QDate)
                                 ? data.toDate().toString("yyyy-MM-dd")
                                 : data.toString();
+
             ui->tableClients_6->setItem(i, j + 1, new QTableWidgetItem(value));
         }
     }
 
     ui->tableClients_6->resizeColumnsToContents();
     ui->tableClients_6->horizontalHeader()->setStretchLastSection(true);
-
-    QMessageBox::information(this, "Tri effectué", "✅ Le tableau a été trié par date d'inscription (ordre croissant).");
 }
 
-void MainWindow::on_pushButton_8_clicked()
+
+
+
+
+
+
+
+//TRIER
+
+void MainWindow::on_pushButton_9_clicked()
 {
-    QSqlQuery query;
-    query.prepare(R"(
-        SELECT TO_CHAR(DATEINSCRIPTION, 'MM') AS mois, COUNT(*) AS total
-        FROM CLIENTT
-        GROUP BY TO_CHAR(DATEINSCRIPTION, 'MM')
-        ORDER BY mois
-    )");
-    if (!query.exec()) {
-        QMessageBox::critical(this, "Erreur SQL", query.lastError().text());
+    Client c;
+    QSqlQueryModel *model = c.getClientsTries();  // tri depuis client.cpp
+
+    ui->tableClients_6->setRowCount(0);
+    ui->tableClients_6->setColumnCount(8);
+
+    // En-têtes (cohérents avec refresh et recherche)
+    QStringList headers = {
+        "Activité", "ID", "Nom", "Email",
+        "Téléphone", "Secteur d'activité",
+        "Pays", "Date d'inscription"
+    };
+    ui->tableClients_6->setHorizontalHeaderLabels(headers);
+
+    for (int i = 0; i < model->rowCount(); ++i)
+    {
+        ui->tableClients_6->insertRow(i);
+
+        int idClient = model->data(model->index(i, 0)).toInt();
+
+        //  Statut via getProjetInfo
+        QSqlQuery info = c.getProjetInfo(idClient);
+        info.next();
+        int duree = info.value("duree").toInt();
+        bool enCours = info.value("enCours").toInt();
+        bool inactif = (!enCours && duree < 30);
+
+        //  Bulle activité
+        QWidget *cellWidget = new QWidget();
+        QHBoxLayout *layout = new QHBoxLayout(cellWidget);
+        layout->setContentsMargins(0, 0, 0, 0);
+        layout->setAlignment(Qt::AlignCenter);
+
+        QLabel *bubble = new QLabel();
+        bubble->setFixedSize(14, 14);
+        bubble->setStyleSheet(QString("border-radius:7px; background-color:%1;")
+                                  .arg(inactif ? "#E53935" : "#43A047"));
+        layout->addWidget(bubble);
+        ui->tableClients_6->setCellWidget(i, 0, cellWidget);
+
+        //  Remplissage colonnes 1..7
+        for (int j = 0; j < model->columnCount(); ++j)
+        {
+            QVariant data = model->data(model->index(i, j));
+            QString value = (data.typeId() == QMetaType::QDate)
+                                ? data.toDate().toString("yyyy-MM-dd")
+                                : data.toString();
+
+            ui->tableClients_6->setItem(i, j + 1,
+                                        new QTableWidgetItem(value));
+        }
+    }
+
+    ui->tableClients_6->resizeColumnsToContents();
+    ui->tableClients_6->horizontalHeader()->setStretchLastSection(true);
+}
+
+
+
+
+
+
+
+
+//EXPORTTPDF
+
+void MainWindow::on_pushButton_7_clicked()
+{
+    Client c;
+    QSqlQueryModel *model = c.getAllClients();
+
+    QString filePath = QFileDialog::getSaveFileName(
+        this, "Exporter PDF", "", "PDF (*.pdf)");
+    if (filePath.isEmpty())
+        return;
+
+    QPdfWriter pdf(filePath);
+    pdf.setPageSize(QPageSize(QPageSize::A4));
+    pdf.setResolution(300);
+
+    QPainter painter(&pdf);
+    painter.setRenderHint(QPainter::Antialiasing);
+
+    QColor mauve(147, 112, 219), orange(255, 140, 0),
+        mauveLight(230, 220, 240), orangeLight(255, 245, 230);
+
+    //  TITRE
+    painter.setFont(QFont("Arial", 18, QFont::Bold));
+    painter.setPen(orange);
+    painter.drawText(QRect(0, 200, pdf.width(), 100),
+                     Qt::AlignCenter, "Liste des clients");
+    painter.setPen(QPen(mauve, 3));
+    painter.drawLine(200, 350, pdf.width() - 200, 350);
+
+    int x = -25, y = 500, h = 120;
+    int w[] = {250, 330, 550, 250, 610, 250, 260};
+
+    QStringList headers = {"ID", "Nom", "Email", "Tél",
+                           "Secteur", "Ville", "Date"};
+
+    //  EN-TÊTE TABLEAU
+    painter.setFont(QFont("Arial", 10, QFont::Bold));
+    painter.setBrush(mauve);
+    painter.drawRect(x, y,
+                     w[0] + w[1] + w[2] + w[3] + w[4] + w[5] + w[6], h);
+    painter.setPen(Qt::white);
+
+    int cx = x;
+    for (int i = 0; i < 7; ++i)
+    {
+        painter.drawText(QRect(cx, y, w[i], h),
+                         Qt::AlignCenter, headers[i]);
+        cx += w[i];
+    }
+    y += h;
+
+    painter.setFont(QFont("Arial", 9));
+
+    //  LIGNES DES CLIENTS
+    for (int i = 0; i < model->rowCount(); ++i)
+    {
+        int idClient = model->data(model->index(i, 0)).toInt();
+
+        //  Active / Inactive (couleur ligne)
+        QSqlQuery info = c.getProjetInfo(idClient);
+        info.next();
+        int duree = info.value("duree").toInt();
+        bool enCours = info.value("enCours").toInt();
+        bool inactif = (!enCours && duree < 30);
+
+        QColor bg = inactif ?
+                        QColor(255, 220, 220) :
+                        (i % 2 == 0 ? mauveLight : orangeLight);
+
+        painter.fillRect(x, y,
+                         w[0] + w[1] + w[2] + w[3] + w[4] + w[5] + w[6],
+                         h, bg);
+        painter.setPen(inactif ? QColor(200, 0, 0) : Qt::black);
+
+        cx = x;
+        for (int j = 0; j < 7; ++j)
+        {
+            QVariant data = model->data(model->index(i, j));
+            QString val =
+                (j == 6)
+                    ? data.toDate().toString("dd/MM/yyyy")
+                    : data.toString();
+
+            painter.drawText(QRect(cx + 5, y, w[j] - 10, h),
+                             Qt::AlignVCenter | Qt::AlignLeft, val);
+            cx += w[j];
+        }
+
+        y += h;
+
+        //  Gestion saut de page
+        if (y > pdf.height() - 400)
+        {
+            pdf.newPage();
+            y = 200;
+        }
+    }
+
+    //  PIED DE PAGE
+    painter.setFont(QFont("Arial", 9, -1, true));
+    painter.setPen(orange);
+    painter.drawText(100, pdf.height() - 150,
+                     "Généré le : " +
+                         QDate::currentDate().toString("dd/MM/yyyy"));
+
+    painter.end();
+
+    QMessageBox::information(this, "PDF", "Exporté !");
+}
+
+
+
+
+
+
+
+//EXPORT CLIENTS INACTIFS
+void MainWindow::on_pushButton_6_clicked()
+{
+    Client c;
+    QSqlQueryModel *model = c.getAllClients();
+
+    QString filePath = QFileDialog::getSaveFileName(
+        this, "Exporter PDF des clients inactifs", "",
+        "Fichiers PDF (*.pdf)");
+    if (filePath.isEmpty())
+        return;
+
+    QPdfWriter pdf(filePath);
+    pdf.setPageSize(QPageSize(QPageSize::A4));
+    pdf.setResolution(300);
+
+    QPainter painter(&pdf);
+    painter.setRenderHint(QPainter::Antialiasing);
+
+    QColor mauveHeader(147, 112, 219);
+    QColor orangeAccent(255, 140, 0);
+    QColor mauveLight(230, 220, 240);
+    QColor orangeLight(255, 245, 230);
+
+    //  TITRE
+    painter.setFont(QFont("Arial", 18, QFont::Bold));
+    painter.setPen(orangeAccent);
+    painter.drawText(QRect(0, 200, pdf.width(), 100),
+                     Qt::AlignCenter,
+                     "Liste des clients inactifs (projets < 30 jours)");
+    painter.setPen(QPen(mauveHeader, 3));
+    painter.drawLine(200, 350, pdf.width() - 200, 350);
+
+    int startX = 200;
+    int y = 500;
+    int rowHeight = 100;
+
+    int colIdWidth = 180;
+    int colNomWidth = 450;
+    int colEmailWidth = 700;
+    int colDureeWidth = 570;
+
+    painter.setFont(QFont("Arial", 12, QFont::Bold));
+    painter.setPen(Qt::white);
+    painter.setBrush(mauveHeader);
+    painter.drawRect(startX, y,
+                     colIdWidth + colNomWidth + colEmailWidth + colDureeWidth,
+                     rowHeight);
+
+    painter.setBrush(Qt::NoBrush);
+    painter.setPen(QPen(mauveHeader, 2));
+
+    painter.drawRect(startX, y, colIdWidth, rowHeight);
+    painter.drawRect(startX + colIdWidth, y, colNomWidth, rowHeight);
+    painter.drawRect(startX + colIdWidth + colNomWidth, y, colEmailWidth,
+                     rowHeight);
+    painter.drawRect(startX + colIdWidth + colNomWidth + colEmailWidth, y,
+                     colDureeWidth, rowHeight);
+
+    painter.setPen(Qt::white);
+    painter.drawText(QRect(startX, y, colIdWidth, rowHeight),
+                     Qt::AlignCenter, "ID");
+    painter.drawText(QRect(startX + colIdWidth, y, colNomWidth, rowHeight),
+                     Qt::AlignCenter, "Nom");
+    painter.drawText(QRect(startX + colIdWidth + colNomWidth, y,
+                           colEmailWidth, rowHeight),
+                     Qt::AlignCenter, "Email");
+    painter.drawText(QRect(startX + colIdWidth + colNomWidth + colEmailWidth,
+                           y, colDureeWidth, rowHeight),
+                     Qt::AlignCenter, "Durée max projet");
+
+    painter.setFont(QFont("Arial", 10));
+    y += rowHeight;
+
+    int ligne = 0;
+
+    for (int i = 0; i < model->rowCount(); ++i)
+    {
+        int idClient = model->data(model->index(i, 0)).toInt();
+        QString nom = model->data(model->index(i, 1)).toString();
+        QString email = model->data(model->index(i, 2)).toString();
+
+        QSqlQuery info = c.getProjetInfo(idClient);
+        info.next();
+        int duree = info.value("duree").toInt();
+        bool enCours = info.value("enCours").toInt();
+        bool inactif = (!enCours && duree < 30);
+
+        if (!inactif)
+            continue;
+
+        QColor bg = (ligne % 2 == 0) ? mauveLight : orangeLight;
+        painter.fillRect(startX, y,
+                         colIdWidth + colNomWidth + colEmailWidth +
+                             colDureeWidth,
+                         rowHeight, bg);
+
+        painter.setPen(QPen(mauveHeader, 1));
+        painter.drawRect(startX, y, colIdWidth, rowHeight);
+        painter.drawRect(startX + colIdWidth, y, colNomWidth, rowHeight);
+        painter.drawRect(startX + colIdWidth + colNomWidth, y,
+                         colEmailWidth, rowHeight);
+        painter.drawRect(startX + colIdWidth + colNomWidth + colEmailWidth, y,
+                         colDureeWidth, rowHeight);
+
+        painter.setPen(Qt::black);
+        painter.drawText(QRect(startX + 20, y, colIdWidth - 40, rowHeight),
+                         Qt::AlignVCenter | Qt::AlignLeft,
+                         QString::number(idClient));
+        painter.drawText(QRect(startX + colIdWidth + 20, y,
+                               colNomWidth - 40, rowHeight),
+                         Qt::AlignVCenter | Qt::AlignLeft, nom);
+        painter.drawText(QRect(startX + colIdWidth + colNomWidth + 20, y,
+                               colEmailWidth - 40, rowHeight),
+                         Qt::AlignVCenter | Qt::AlignLeft, email);
+        painter.drawText(QRect(startX + colIdWidth + colNomWidth +
+                                   colEmailWidth + 20,
+                               y, colDureeWidth - 40, rowHeight),
+                         Qt::AlignVCenter | Qt::AlignLeft,
+                         QString::number(duree) + " jours");
+
+        y += rowHeight;
+        ++ligne;
+
+        if (y > pdf.height() - 300)
+        {
+            pdf.newPage();
+            y = 200;
+        }
+    }
+
+    painter.setFont(QFont("Arial", 9, -1, true));
+    painter.setPen(orangeAccent);
+    painter.drawText(
+        200, pdf.height() - 150,
+        "Généré le : " + QDate::currentDate().toString("dd/MM/yyyy"));
+
+    painter.end();
+    QMessageBox::information(this, "PDF",
+                             "PDF généré avec succès !");
+}
+
+
+
+
+
+
+
+
+
+
+//FICHE CLIENT
+void MainWindow::on_pushButton_10_clicked()
+{
+    if (ui->leId_6->text().isEmpty())
+    {
+        QMessageBox::warning(this, "Erreur",
+                             "Sélectionnez un client d'abord.");
         return;
     }
 
-    QBarSet *setNouveaux = new QBarSet("Nouveaux clients");
-    QBarSet *setAnciens = new QBarSet("Anciens clients (> 30 jours)");
-    setNouveaux->setColor(QColor("#6A0DAD"));
-    setAnciens->setColor(QColor("#FB8C00"));
+    int idClient = ui->leId_6->text().toInt();
+    Client c;
 
-    QStringList categories;
-    QVector<int> dataNouveaux(12, 0), dataAnciens(12, 0);
-    QDate today = QDate::currentDate();
+    QString filePath = QFileDialog::getSaveFileName(
+        this, "Exporter Fiche Client", "", "PDF (*.pdf)");
+    if (filePath.isEmpty())
+        return;
 
-    while (query.next()) {
-        int mois = query.value("mois").toInt();
-        int total = query.value("total").toInt();
+    QPdfWriter pdf(filePath);
+    pdf.setPageSize(QPageSize(QPageSize::A4));
+    pdf.setResolution(300);
 
-        QSqlQuery subQuery;
-        subQuery.prepare(R"(
-            SELECT COUNT(*) FROM CLIENTT
-            WHERE TO_CHAR(DATEINSCRIPTION, 'MM') = :mois
-            AND (TRUNC(:today - DATEINSCRIPTION) > 30)
-        )");
-        subQuery.bindValue(":mois", mois);
-        subQuery.bindValue(":today", today);
-        subQuery.exec();
-        subQuery.next();
-        int anciens = subQuery.value(0).toInt();
+    QPainter painter(&pdf);
+    painter.setRenderHint(QPainter::Antialiasing);
 
-        int nouveaux = total - anciens;
-        dataNouveaux[mois - 1] = nouveaux;
-        dataAnciens[mois - 1] = anciens;
+    QColor mauve(147, 112, 219), orange(255, 140, 0),
+        mauveLight(230, 220, 240), orangeLight(255, 245, 230);
+
+    //  TITRE
+    painter.setFont(QFont("Arial", 20, QFont::Bold));
+    painter.setPen(orange);
+    painter.drawText(QRect(0, 200, pdf.width(), 100),
+                     Qt::AlignCenter, "FICHE CLIENT");
+    painter.setPen(QPen(mauve, 3));
+    painter.drawLine(200, 300, pdf.width() - 200, 300);
+
+    int x = 100, y = 380, h = 60;
+
+    //  SECTION “INFORMATIONS DU CLIENT”
+    painter.setFont(QFont("Arial", 12, QFont::Bold));
+    painter.setPen(mauve);
+    painter.drawText(x, y, "Informations du client");
+    y += 40;
+
+    // Récup projets pour statut
+    QSqlQueryModel *projModel = c.getProjetsDuClient(idClient);
+    QDate lastEnd;
+
+    for (int i = 0; i < projModel->rowCount(); ++i)
+    {
+        QDate fin = projModel->data(projModel->index(i, 2)).toDate();
+        if (fin.isValid() && (!lastEnd.isValid() || fin > lastEnd))
+            lastEnd = fin;
     }
 
-    for (int i = 0; i < 12; ++i) categories << QLocale::system().monthName(i + 1);
+    QString statut = "ACTIF";
+    if (lastEnd.isValid())
+    {
+        int daysInactive = lastEnd.daysTo(QDate::currentDate());
+        if (daysInactive > 0)
+            statut = "INACTIF depuis " + lastEnd.toString("dd/MM/yyyy");
+    }
 
-    *setNouveaux << dataNouveaux[0] << dataNouveaux[1] << dataNouveaux[2] << dataNouveaux[3]
-                 << dataNouveaux[4] << dataNouveaux[5] << dataNouveaux[6] << dataNouveaux[7]
-                 << dataNouveaux[8] << dataNouveaux[9] << dataNouveaux[10] << dataNouveaux[11];
+    QStringList labels = {"ID Client", "Nom", "Email", "Téléphone",
+                          "Secteur", "Ville",
+                          "Date d'inscription"};
 
-    *setAnciens << dataAnciens[0] << dataAnciens[1] << dataAnciens[2] << dataAnciens[3]
-                << dataAnciens[4] << dataAnciens[5] << dataAnciens[6] << dataAnciens[7]
-                << dataAnciens[8] << dataAnciens[9] << dataAnciens[10] << dataAnciens[11];
+    QStringList values = {
+        ui->leId_6->text(),
+        ui->leNom_6->text(),
+        ui->leEmail_6->text(),
+        ui->leTel_6->text(),
+        ui->cbSecteur_6->currentText(),
+        ui->cbPays_6->currentText(),
+        ui->deDate_6->date().toString("dd/MM/yyyy"),
+    };
 
-    QBarSeries *series = new QBarSeries();
-    series->append(setNouveaux);
-    series->append(setAnciens);
+    int labelW = 450;
+    int valueW = 650;
+
+    //  TABLE INFORMATIONS
+    for (int i = 0; i < labels.size(); ++i)
+    {
+        QColor bg = (i % 2 == 0 ? mauveLight : orangeLight);
+        painter.fillRect(x, y, labelW + valueW, h, bg);
+
+        painter.setPen(Qt::black);
+        painter.setFont(QFont("Arial", 10, QFont::Bold));
+        painter.drawText(QRect(x + 10, y, labelW - 20, h),
+                         Qt::AlignVCenter | Qt::AlignLeft,
+                         labels[i] + " :");
+
+        painter.setFont(QFont("Arial", 10));
+        painter.drawText(QRect(x + labelW + 10, y, valueW - 20, h),
+                         Qt::AlignVCenter | Qt::AlignLeft,
+                         values[i]);
+
+        y += h;
+    }
+
+    y += 60;
+
+    //  SECTION “PROJETS ASSOCIÉS”
+    painter.setFont(QFont("Arial", 12, QFont::Bold));
+    painter.setPen(mauve);
+    painter.drawText(x, y, "Projets associés");
+    y += 40;
+
+    int w[] = {250, 350, 350, 350, 350};
+    QStringList headers = {"ID", "Début", "Fin", "Budget", "Statut"};
+
+    painter.setBrush(mauve);
+    painter.setPen(Qt::white);
+    painter.drawRect(x, y,
+                     w[0] + w[1] + w[2] + w[3] + w[4], h);
+
+    int cx = x;
+    painter.setFont(QFont("Arial", 10, QFont::Bold));
+    for (int i = 0; i < 5; ++i)
+    {
+        painter.drawText(QRect(cx, y, w[i], h),
+                         Qt::AlignCenter, headers[i]);
+        cx += w[i];
+    }
+    y += h;
+
+    painter.setPen(Qt::black);
+    painter.setFont(QFont("Arial", 10));
+    int rowIndex = 0;
+
+    for (int i = 0; i < projModel->rowCount(); ++i)
+    {
+        QColor bg = (rowIndex % 2 == 0 ? mauveLight : orangeLight);
+        painter.fillRect(x, y,
+                         w[0] + w[1] + w[2] + w[3] + w[4], h, bg);
+
+        cx = x;
+
+        painter.drawText(QRect(cx + 5, y, w[0], h),
+                         Qt::AlignVCenter | Qt::AlignLeft,
+                         projModel->data(projModel->index(i, 0)).toString());
+        cx += w[0];
+
+        painter.drawText(QRect(cx + 5, y, w[1], h),
+                         Qt::AlignVCenter | Qt::AlignLeft,
+                         projModel->data(projModel->index(i, 1)).toDate().toString("dd/MM/yyyy"));
+        cx += w[1];
+
+        painter.drawText(QRect(cx + 5, y, w[2], h),
+                         Qt::AlignVCenter | Qt::AlignLeft,
+                         projModel->data(projModel->index(i, 2)).toDate().toString("dd/MM/yyyy"));
+        cx += w[2];
+
+        painter.drawText(QRect(cx + 5, y, w[3], h),
+                         Qt::AlignVCenter | Qt::AlignLeft,
+                         projModel->data(projModel->index(i, 3)).toString() + " DT");
+        cx += w[3];
+
+        painter.drawText(QRect(cx + 5, y, w[4], h),
+                         Qt::AlignVCenter | Qt::AlignLeft,
+                         projModel->data(projModel->index(i, 4)).toString());
+
+        y += h;
+        ++rowIndex;
+    }
+
+    // FOOTER
+    painter.setFont(QFont("Arial", 8, QFont::StyleItalic));
+    painter.setPen(QColor(120, 120, 120));
+    painter.drawText(
+        QRect(100, pdf.height() - 120, pdf.width() - 200, 40),
+        Qt::AlignCenter,
+        "Document généré automatiquement - SDCCS - " +
+            QDate::currentDate().toString("dd/MM/yyyy"));
+
+    painter.end();
+
+    QMessageBox::information(this, "PDF", "Fiche client exportée !");
+}
+
+
+
+
+
+
+
+
+
+
+//MAP
+void MainWindow::on_pushButton_11_clicked()
+{
+    Client c;
+    QSqlQueryModel *model = c.getNomsEtVilles();
+
+    if (!mapWindow)
+        mapWindow = new BubbleMapWindow();
+
+    mapWindow->clearClients();
+
+    for (int i = 0; i < model->rowCount(); ++i)
+    {
+        QString nom = model->data(model->index(i, 0)).toString().trimmed();
+        QString ville = model->data(model->index(i, 1)).toString().trimmed();
+
+        if (!nom.isEmpty() && !ville.isEmpty())
+            mapWindow->addClient(nom, ville);
+    }
+
+    mapWindow->show();
+}
+
+
+
+
+
+
+
+
+
+//STATS
+/* ============================================================
+   🔵 STATISTIQUES – TOP 3 SECTEURS D’ACTIVITÉ
+   ============================================================ */
+void MainWindow::on_pushButton_8_clicked()
+{
+    Client c;
+    QSqlQueryModel *model = c.getAllClients();
+
+    QMap<QString, int> counts;
+    int totalGlobal = 0;
+
+    // Comptage secteurs
+    for (int i = 0; i < model->rowCount(); ++i)
+    {
+        QString secteur = model->data(model->index(i, 4)).toString().trimmed();
+
+        if (secteur.isEmpty() || secteur == " " ||
+            secteur.toLower() == "null")
+            continue;
+
+        counts[secteur]++;
+        totalGlobal++;
+    }
+
+    if (counts.isEmpty())
+    {
+        QMessageBox::information(
+            this, "Info",
+            "Aucun secteur valide trouvé.\n"
+            "Veuillez ajouter des secteurs dans vos clients.");
+        return;
+    }
+
+    // Tri décroissant
+    QList<QPair<QString, int>> liste;
+    for (auto it = counts.begin(); it != counts.end(); ++it)
+        liste.append(qMakePair(it.key(), it.value()));
+
+    std::sort(liste.begin(), liste.end(),
+              [](const QPair<QString, int> &a,
+                 const QPair<QString, int> &b) {
+                  return a.second > b.second;
+              });
+
+    int max = qMin(3, liste.size());
+
+    // CHART
+    QPieSeries *series = new QPieSeries();
+    series->setHoleSize(0.45);
+    series->setPieSize(0.90);
+
+    QList<QColor> colors = {QColor("#0A1A2F"), QColor("#FB8C00"), QColor("#9C27B0")};
+
+    for (int i = 0; i < max; ++i)
+    {
+        int value = liste[i].second;
+        QPieSlice *slice = series->append("", value);
+
+        QLinearGradient grad;
+        grad.setStart(0, 0);
+        grad.setFinalStop(1, 1);
+        grad.setColorAt(0, colors[i].lighter(130));
+        grad.setColorAt(1, colors[i].darker(110));
+        slice->setBrush(grad);
+
+        slice->setPen(QPen(Qt::white, 4));
+        connect(slice, &QPieSlice::hovered, slice,
+                [slice](bool state) {
+                    slice->setExploded(state);
+                    slice->setExplodeDistanceFactor(state ? 0.12 : 0.06);
+                });
+
+        slice->setExploded(true);
+        slice->setExplodeDistanceFactor(0.06);
+    }
+
+    series->setLabelsVisible(false);
 
     QChart *chart = new QChart();
     chart->addSeries(series);
-    chart->setTitle("📊 Répartition des clients (nouveaux vs anciens)");
-    chart->setAnimationOptions(QChart::SeriesAnimations);
-    chart->setBackgroundBrush(QBrush(QColor("#EDEAF9")));
-    chart->setTitleBrush(QBrush(QColor("#14172D")));
-    chart->setTitleFont(QFont("Segoe UI", 10, QFont::Bold));
-
-    QBarCategoryAxis *axisX = new QBarCategoryAxis();
-    axisX->append(categories);
-    axisX->setLabelsColor(QColor("#14172D"));
-    chart->addAxis(axisX, Qt::AlignBottom);
-    series->attachAxis(axisX);
-
-    QValueAxis *axisY = new QValueAxis();
-    axisY->setTitleText("Nombre de clients");
-    axisY->setLabelsColor(QColor("#14172D"));
-    axisY->setTitleBrush(QBrush(QColor("#14172D")));
-    axisY->setLabelFormat("%d");
-    axisY->setTickType(QValueAxis::TicksDynamic);
-    axisY->setMinorTickCount(0);
-    axisY->setTickInterval(1.0);
-    chart->addAxis(axisY, Qt::AlignLeft);
-    series->attachAxis(axisY);
-
-    chart->legend()->setVisible(true);
-    chart->legend()->setAlignment(Qt::AlignTop);
-    chart->legend()->setLabelColor(QColor("#14172D"));
-    chart->legend()->setFont(QFont("Segoe UI", 9));
-    chart->legend()->setBackgroundVisible(false);
+    chart->setTitle("Top 3 secteurs d'activité les plus fréquents");
+    chart->setTitleFont(QFont("Segoe UI", 16, QFont::Bold));
+    chart->legend()->hide();
+    chart->setDropShadowEnabled(true);
+    chart->setBackgroundBrush(QColor("#EDEAF9"));
+    chart->setBackgroundRoundness(20);
 
     QChartView *chartView = new QChartView(chart);
     chartView->setRenderHint(QPainter::Antialiasing);
-    chartView->setStyleSheet("background-color: #EDEAF9; border-radius: 10px;");
+    chartView->setStyleSheet("background: transparent; border-radius: 20px;");
 
+    // Légende personnalisée
+    QWidget *legendWidget = new QWidget();
+    QVBoxLayout *legendLayout = new QVBoxLayout(legendWidget);
+
+    for (int i = 0; i < max; ++i)
+    {
+        QString secteur = liste[i].first;
+        int count = liste[i].second;
+        double percent = ((double)count / (double)totalGlobal) * 100.0;
+
+        QLabel *label = new QLabel();
+
+        QString bullet = QString("<span style='font-size:22px; color:%1;'>●</span>")
+                             .arg(colors[i].name());
+
+        QString html =
+            QString("%1 <b style='font-size:16px; color:%2;'>%3</b><br>"
+                    "<span style='color:%2; font-size:13px;'>%4 clients — %5%</span>")
+                .arg(bullet)
+                .arg(colors[i].name())
+                .arg(secteur)
+                .arg(count)
+                .arg(QString::number(percent, 'f', 1));
+
+        label->setText(html);
+        label->setWordWrap(true);
+        label->setStyleSheet("padding: 6px;");
+        legendLayout->addWidget(label);
+    }
+
+    // Layout final
+    QWidget *container = new QWidget();
+    QHBoxLayout *hLayout = new QHBoxLayout(container);
+
+    hLayout->addWidget(chartView, 3);
+    hLayout->addWidget(legendWidget, 1);
+    hLayout->setSpacing(30);
+
+    container->setStyleSheet(
+        "background-color: #EDEAF9;"
+        "border-radius: 25px;"
+        "padding: 20px;");
+
+    // Dialog
     QDialog *dialog = new QDialog(this);
-    dialog->setWindowTitle("Statistiques des Clients");
-    dialog->resize(900, 600);
+    dialog->setWindowTitle("Statistiques - Secteurs d'activité");
+    dialog->resize(1000, 650);
 
-    QVBoxLayout *layout = new QVBoxLayout(dialog);
-    layout->addWidget(chartView);
-    dialog->setLayout(layout);
+    QVBoxLayout *mainLayout = new QVBoxLayout(dialog);
+    mainLayout->addWidget(container);
+
     dialog->exec();
 }
 
+
+
+
+void MainWindow::on_pushButton_client_clicked()
+{
+    ui->stackedWidget->setCurrentIndex(2); // ou ce que tu veux
+    refreshClientTable();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//fin gestionclient
 
 
 // Gestion Projets

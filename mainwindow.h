@@ -1,11 +1,11 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include "bubblemapwindow.h"
 #include "qpushbutton.h"
 #include <QMainWindow>
 #include "ui_mainwindow.h"
 #include "Employe.h"
-#include "client.h"
 #include "projet.h"
 #include <QTableWidgetItem>
 #include <QDate>
@@ -13,6 +13,10 @@
 #include <QColor>
 #include <QPixmap>
 #include <QPushButton>
+//client
+#include "client.h"
+#include "bubblemapwindow.h"
+//client
 
 // === MODULE SPONSOR ===
 #include "sponsor.h"
@@ -68,14 +72,20 @@ private slots:
     void ouvrirPageCategorie();
 
     // Clients
+    void refreshClientTable();
     void on_tableClients_6_cellClicked(int row, int column);
     void on_btnAjouter_3_clicked();
     void on_btnModifier_3_clicked();
     void on_btnSupprimer_3_clicked();
     void on_leSearch_6_textChanged(const QString &text);
-    void on_pushButton_7_clicked();
-    void on_pushButton_9_clicked();
-    void on_pushButton_8_clicked();
+    void on_pushButton_9_clicked(); // Tri
+    void on_pushButton_7_clicked(); // Export PDF - liste complète
+    void on_pushButton_6_clicked(); // Export PDF - inactifs
+    void on_pushButton_10_clicked(); // Fiche client PDF
+    void on_pushButton_8_clicked(); // Statistiques secteurs
+    void on_pushButton_11_clicked(); // Map clients
+    void on_pushButton_client_clicked(); // bouton du menu latéral pour ouvrir la page client
+    //fin client
 
     // Projets
     void on_btnAjouterProjet_clicked();
@@ -102,9 +112,11 @@ private:
     QToolBar *m_tb = nullptr;
     bool isModifyingProjet;
     QString currentModifyClient;
+    //clients
+    BubbleMapWindow *mapWindow; //map clients
+    //finclients
 
     void setActiveButton(QPushButton *btn);
-    void refreshClientTable();
     void refreshProjetTable();
     void setupProjetTable();
 

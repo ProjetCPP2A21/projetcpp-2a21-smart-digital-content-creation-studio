@@ -9,6 +9,8 @@ CONFIG += c++17
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    bubblemapwidget.cpp \
+    bubblemapwindow.cpp \
     client.cpp \
     main.cpp \
     mainwindow.cpp\
@@ -17,10 +19,13 @@ SOURCES += \
     projet.cpp\
     sponsor.cpp\
     ressource.cpp
+    bubblemapwidget.cpp\
 
 
 
 HEADERS += \
+    bubblemapwidget.h \
+    bubblemapwindow.h \
     client.h \
     mainwindow.h\
     connection.h\

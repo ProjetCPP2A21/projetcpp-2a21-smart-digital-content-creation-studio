@@ -1,6 +1,5 @@
 #include "client.h"
 #include <QSqlQuery>
-#include <QSqlQueryModel>
 #include <QSqlError>
 #include <QDebug>
 
@@ -15,7 +14,8 @@ Client::Client()
     dateInscription = QDate::currentDate();
 }
 
-Client::Client(int id, QString nom, QString email, QString telephone, QString secteur, QString pays, QDate dateInscription)
+Client::Client(int id, QString nom, QString email, QString telephone,
+               QString secteur, QString pays, QDate dateInscription)
 {
     this->id = id;
     this->nom = nom;
@@ -26,116 +26,144 @@ Client::Client(int id, QString nom, QString email, QString telephone, QString se
     this->dateInscription = dateInscription;
 }
 
-//  AJOUTER
+/* ============================================================
+   🔵 AJOUTER
+   ============================================================ */
 bool Client::ajouter()
 {
     QSqlQuery query;
-
-    // ️ Préparation de la requête (identique à ta structure de table)
     query.prepare("INSERT INTO CLIENTT "
                   "(IDCLIENT, NOM, EMAIL, TELEPHONE, SECTEURACTIVITE, PAYS, DATEINSCRIPTION) "
-                  "VALUES (:id, :nom, :email, :telephone, :secteuractivite, :pays, TO_DATE(:dateinscription, 'YYYY-MM-DD'))");
-
-    //  Liaison des valeurs
-    query.bindValue(":id", id);
-    query.bindValue(":nom", nom.trimmed());
-    query.bindValue(":email", email.trimmed());
-    query.bindValue(":telephone", telephone.trimmed());
-    query.bindValue(":secteuractivite", secteur.trimmed());
-    query.bindValue(":pays", pays.trimmed());
-    query.bindValue(":dateinscription", dateInscription.toString("yyyy-MM-dd"));
-
-    // 🧩 Exécution
-    if (query.exec()) {
-        qDebug() << " Client ajouté avec succès !";
-        return true;
-    } else {
-        //  Détails complets en cas d'erreur Oracle
-        qDebug() << " Erreur ajout client:" << query.lastError().text();
-        qDebug() << " Détail driver:" << query.lastError().driverText();
-        qDebug() << " Détail base:" << query.lastError().databaseText();
-        qDebug() << " Requête exécutée:" << query.lastQuery();
-        return false;
-    }
-}
-
-
-
-
-
-
-// AFFICHER
-QSqlQueryModel* Client::afficher()
-{
-    QSqlQueryModel* model = new QSqlQueryModel();
-    model->setQuery("SELECT * FROM CLIENTT ORDER BY IDCLIENT ASC");
-    model->setHeaderData(0, Qt::Horizontal, QObject::tr("ID"));
-    model->setHeaderData(1, Qt::Horizontal, QObject::tr("Nom"));
-    model->setHeaderData(2, Qt::Horizontal, QObject::tr("Email"));
-    model->setHeaderData(3, Qt::Horizontal, QObject::tr("Téléphone"));
-    model->setHeaderData(4, Qt::Horizontal, QObject::tr("Secteur d'activité"));
-    model->setHeaderData(5, Qt::Horizontal, QObject::tr("Pays"));
-    model->setHeaderData(6, Qt::Horizontal, QObject::tr("Date d'inscription"));
-    return model;
-}
-
-// SUPPRIMER
-bool Client::supprimer(int id)
-{
-    QSqlQuery query;
-    query.prepare("DELETE FROM CLIENTT WHERE IDCLIENT = :id");
-    query.bindValue(":id", id);
-
-    if (query.exec()) {
-        qDebug() << " Client supprimé avec succès !";
-        return true;
-    } else {
-        qDebug() << " Erreur suppression client:" << query.lastError().text();
-        return false;
-    }
-}
-
-//  MODIFIER
-bool Client::modifier()
-{
-    QSqlQuery query;
-
-    QString sql = "UPDATE CLIENTT SET "
-                  "NOM = :nom, "
-                  "EMAIL = :email, "
-                  "TELEPHONE = :telephone, "
-                  "SECTEURACTIVITE = :secteur, "
-                  "PAYS = :pays, "
-                  "DATEINSCRIPTION = TO_DATE(:dateInscription, 'YYYY-MM-DD') "
-                  "WHERE IDCLIENT = :id";
-
-    query.prepare(sql);
+                  "VALUES (:id, :nom, :email, :tel, :secteur, :pays, :dateIns)");
 
     query.bindValue(":id", id);
     query.bindValue(":nom", nom);
     query.bindValue(":email", email);
-    query.bindValue(":telephone", telephone);
+    query.bindValue(":tel", telephone);
     query.bindValue(":secteur", secteur);
     query.bindValue(":pays", pays);
-    query.bindValue(":dateInscription", dateInscription.toString("yyyy-MM-dd"));
+    query.bindValue(":dateIns", dateInscription);
 
-    qDebug() << " [DEBUG SQL] Requête préparée :" << sql;
-    qDebug() << " [DEBUG PARAMS] ID:" << id
-             << ", NOM:" << nom
-             << ", EMAIL:" << email
-             << ", TEL:" << telephone
-             << ", SECTEUR:" << secteur
-             << ", PAYS:" << pays
-             << ", DATE:" << dateInscription.toString("yyyy-MM-dd");
-
-    if (query.exec()) {
-        int rows = query.numRowsAffected();
-        qDebug() << " Requête exécutée. Lignes affectées :" << rows;
-        return rows > 0;
-    } else {
-        qDebug() << " Erreur Oracle lors du UPDATE:" << query.lastError().text();
-        return false;
-    }
+    return query.exec();
 }
 
+/* ============================================================
+   🔵 MODIFIER
+   ============================================================ */
+bool Client::modifier()
+{
+    QSqlQuery query;
+    query.prepare("UPDATE CLIENTT SET "
+                  "NOM=:nom, EMAIL=:email, TELEPHONE=:tel, "
+                  "SECTEURACTIVITE=:secteur, PAYS=:pays, DATEINSCRIPTION=:dateIns "
+                  "WHERE IDCLIENT=:id");
+
+    query.bindValue(":nom", nom);
+    query.bindValue(":email", email);
+    query.bindValue(":tel", telephone);
+    query.bindValue(":secteur", secteur);
+    query.bindValue(":pays", pays);
+    query.bindValue(":dateIns", dateInscription);
+    query.bindValue(":id", id);
+
+    return query.exec();
+}
+
+/* ============================================================
+   🔵 SUPPRIMER
+   ============================================================ */
+bool Client::supprimer(int id)
+{
+    QSqlQuery query;
+    query.prepare("DELETE FROM CLIENTT WHERE IDCLIENT=:id");
+    query.bindValue(":id", id);
+    return query.exec();
+}
+
+/* ============================================================
+   🔵 AFFICHAGE COMPLET
+   ============================================================ */
+QSqlQueryModel* Client::getAllClients()
+{
+    QSqlQueryModel *model = new QSqlQueryModel();
+    model->setQuery("SELECT IDCLIENT, NOM, EMAIL, TELEPHONE, SECTEURACTIVITE, PAYS, DATEINSCRIPTION FROM CLIENTT");
+    return model;
+}
+
+/* ============================================================
+   🔵 TRI PAR DATE
+   ============================================================ */
+QSqlQueryModel* Client::getClientsTries()
+{
+    QSqlQueryModel *model = new QSqlQueryModel();
+    model->setQuery("SELECT IDCLIENT, NOM, EMAIL, TELEPHONE, SECTEURACTIVITE, PAYS, DATEINSCRIPTION "
+                    "FROM CLIENTT ORDER BY DATEINSCRIPTION ASC");
+    return model;
+}
+
+/* ============================================================
+   🔵 RECHERCHE PAR SECTEUR
+   ============================================================ */
+QSqlQueryModel* Client::rechercheSecteur(const QString &secteur)
+{
+    QSqlQueryModel *model = new QSqlQueryModel();
+    QSqlQuery query;
+
+    query.prepare("SELECT IDCLIENT, NOM, EMAIL, TELEPHONE, SECTEURACTIVITE, PAYS, DATEINSCRIPTION "
+                  "FROM CLIENTT WHERE LOWER(SECTEURACTIVITE) LIKE LOWER(:sec)");
+
+    query.bindValue(":sec", "%" + secteur + "%");
+    query.exec();
+    model->setQuery(query);
+
+    return model;
+}
+
+/* ============================================================
+   🔵 POUR LA MAP – Nom + Ville
+   ============================================================ */
+QSqlQueryModel* Client::getNomsEtVilles()
+{
+    QSqlQueryModel *model = new QSqlQueryModel();
+    model->setQuery("SELECT NOM, PAYS FROM CLIENTT");
+    return model;
+}
+
+/* ============================================================
+   🔵 STATUT CLIENT BASÉ SUR PROJET
+      - duree = MAX(date_fin - date_debut)
+      - enCours = existe projet où date_fin >= aujourd’hui
+   ============================================================ */
+QSqlQuery Client::getProjetInfo(int idClient)
+{
+    QSqlQuery query;
+
+    query.prepare(
+        "SELECT NVL(MAX(DATE_FIN - DATE_DEBUT), 0) AS duree "
+        "FROM PROJET WHERE IDCLIENT = :idc"
+        );
+
+    query.bindValue(":idc", idClient);
+    query.exec();
+    return query;
+}
+
+
+/* ============================================================
+   🔵 LISTE DÉTAILLÉE DES PROJETS POUR LE PDF FICHE
+   ============================================================ */
+QSqlQueryModel* Client::getProjetsDuClient(int idClient)
+{
+    QSqlQueryModel *model = new QSqlQueryModel();
+    QSqlQuery query;
+
+    query.prepare("SELECT ID_PROJET, DATE_DEBUT, DATE_FIN, BUDGET_REALISE, STATUS "
+                  "FROM PROJET WHERE IDCLIENT = :idc "
+                  "ORDER BY DATE_DEBUT DESC");
+    query.bindValue(":idc", idClient);
+    query.exec();
+
+    model->setQuery(query);
+    return model;
+}
 

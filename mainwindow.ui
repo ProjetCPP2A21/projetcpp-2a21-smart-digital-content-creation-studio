@@ -17,14 +17,14 @@
    <widget class="QStackedWidget" name="stackedWidget_principale">
     <property name="geometry">
      <rect>
-      <x>0</x>
+      <x>-80</x>
       <y>0</y>
       <width>1431</width>
       <height>701</height>
      </rect>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>1</number>
     </property>
     <widget class="QWidget" name="page">
      <widget class="QStackedWidget" name="stackedWidget_login">
@@ -456,7 +456,7 @@ QPushButton:hover {
        </rect>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="page_projet">
        <widget class="QPushButton" name="btnSupprimerProjet">
@@ -1153,43 +1153,43 @@ QGroupBox QComboBox::down-arrow {
              </font>
             </property>
             <property name="text">
-             <string>Pays :</string>
+             <string>Ville :</string>
             </property>
            </widget>
           </item>
           <item row="12" column="1">
            <widget class="QComboBox" name="cbPays_6">
             <property name="placeholderText">
-             <string>Pays</string>
+             <string>Ville</string>
             </property>
             <item>
              <property name="text">
-              <string>Pays...</string>
+              <string>Ville...</string>
              </property>
             </item>
             <item>
              <property name="text">
-              <string>Tunisie</string>
+              <string>Tunis</string>
              </property>
             </item>
             <item>
              <property name="text">
-              <string>Algérie</string>
+              <string>Bizerte</string>
              </property>
             </item>
             <item>
              <property name="text">
-              <string>France</string>
+              <string>Sousse</string>
              </property>
             </item>
             <item>
              <property name="text">
-              <string>Italie</string>
+              <string>Zaghouan</string>
              </property>
             </item>
             <item>
              <property name="text">
-              <string>Allemagne</string>
+              <string>Nabeul</string>
              </property>
             </item>
            </widget>
@@ -1291,6 +1291,26 @@ QPushButton:hover {
             </widget>
            </item>
            <item>
+            <widget class="QPushButton" name="pushButton_9">
+             <property name="styleSheet">
+              <string notr="true">QPushButton {
+    background: #6A0DAD;
+    color: white;
+    border: 1px solid #4B0082;
+    border-radius: 6px;
+    padding: 5px 10px;
+}
+
+QPushButton:hover {
+    background: #1B1B3A;
+}</string>
+             </property>
+             <property name="text">
+              <string>Trier</string>
+             </property>
+            </widget>
+           </item>
+           <item>
             <widget class="QPushButton" name="pushButton_7">
              <property name="styleSheet">
               <string notr="true">QPushButton {
@@ -1347,6 +1367,46 @@ QPushButton:hover {
              </property>
              <property name="text">
               <string>Clients Inactifs</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="pushButton_10">
+             <property name="styleSheet">
+              <string notr="true">QPushButton {
+    background: #6A0DAD;
+    color: white;
+    border: 1px solid #4B0082;
+    border-radius: 6px;
+    padding: 5px 10px;
+}
+
+QPushButton:hover {
+    background: #1B1B3A;
+}</string>
+             </property>
+             <property name="text">
+              <string>Fiche Client</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="pushButton_11">
+             <property name="styleSheet">
+              <string notr="true">QPushButton {
+    background: #6A0DAD;
+    color: white;
+    border: 1px solid #4B0082;
+    border-radius: 6px;
+    padding: 5px 10px;
+}
+
+QPushButton:hover {
+    background: #1B1B3A;
+}</string>
+             </property>
+             <property name="text">
+              <string>Map Clients</string>
              </property>
             </widget>
            </item>
@@ -1442,7 +1502,7 @@ QScrollBar::handle:vertical:hover {
            </column>
            <column>
             <property name="text">
-             <string>Pays</string>
+             <string>Ville</string>
             </property>
            </column>
            <column>

@@ -2,6 +2,7 @@
 #define CLIENT_H
 
 #include <QString>
+#include <QSqlQuery>
 #include <QSqlQueryModel>
 #include <QDate>
 
@@ -22,9 +23,18 @@ public:
 
     // CRUD
     bool ajouter();
-    QSqlQueryModel* afficher();
-    bool supprimer(int);
     bool modifier();
+    bool supprimer(int);
+
+    // Affichage
+    QSqlQueryModel* getAllClients();
+    QSqlQueryModel* getClientsTries();
+    QSqlQueryModel* rechercheSecteur(const QString &);
+    QSqlQueryModel* getNomsEtVilles();
+
+    // Projets d’un client
+    QSqlQuery getProjetInfo(int);             // duree max + enCours
+    QSqlQueryModel* getProjetsDuClient(int);  // liste détaillée
 };
 
 #endif // CLIENT_H
