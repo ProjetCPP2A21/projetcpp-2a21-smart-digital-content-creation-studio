@@ -64,7 +64,7 @@ void BubbleMapWidget::addClient(const QString &name, const QString &city)
     }
     // Pour Monastir/Sousse : vers le haut aussi
     else if (normalizedCity == "Monastir" || normalizedCity == "Sousse") {
-        offset = -(count * 20);  // NÉGATIF = vers le haut !
+        offset = -(count * 20);
     }
     // Autres villes : normal
     else {
@@ -120,7 +120,7 @@ void BubbleMapWidget::paintEvent(QPaintEvent *)
         }
         else if (c.city == "Zaghouan") {
             // Zaghouan : texte PLUS À DROITE
-            textPos = QPointF(center.x() + 90, center.y() + c.offset);  // ✅ 60 au lieu de 35
+            textPos = QPointF(center.x() + 90, center.y() + c.offset);
         }
         else if (c.city == "Nabeul") {
             // Nabeul : texte à DROITE (dans la mer)
@@ -233,7 +233,7 @@ QPoint BubbleMapWidget::cityToPoint(const QString &city)
 
         // Centre-Est
         {"Zaghouan",    {410, 180}},
-        {"Sousse",      {470, 220}},
+        {"Sousse",      {470, 256}},
         {"Monastir",    {505, 310}},
         {"Mahdia",      {520, 340}},
 

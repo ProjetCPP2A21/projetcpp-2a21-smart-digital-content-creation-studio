@@ -2,6 +2,7 @@
 #define CLIENT_H
 
 #include <QString>
+#include <QSqlQuery>
 #include <QSqlQueryModel>
 #include <QDate>
 
@@ -15,21 +16,25 @@ private:
     QString secteur;
     QString pays;
     QDate dateInscription;
-    QString etat;
 
 public:
     Client();
-    Client(int id, QString nom, QString email, QString telephone,
-           QString secteur, QString pays, QDate dateInscription);
+    Client(int, QString, QString, QString, QString, QString, QDate);
 
     // CRUD
     bool ajouter();
-    QSqlQueryModel* afficher();
-    bool supprimer(int id);
     bool modifier();
+    bool supprimer(int);
 
-    int getId() const { return id; }
-    QString getEtat() const { return etat; }
+    // Affichage
+    QSqlQueryModel* getAllClients();
+    QSqlQueryModel* getClientsTries();
+    QSqlQueryModel* rechercheSecteur(const QString &);
+    QSqlQueryModel* getNomsEtVilles();
+
+    // Projets d’un client
+    QSqlQuery getProjetInfo(int);             // duree max + enCours
+    QSqlQueryModel* getProjetsDuClient(int);  // liste détaillée
 };
 
 #endif // CLIENT_H
