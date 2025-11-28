@@ -6,7 +6,7 @@
 ** WARNING! All changes made in this file will be lost!
 *****************************************************************************/
 
-#include "E:/ProjetC++/Interface_gestionclient_/gestionclient.h"
+#include "../../../gestionclient.h"
 #include <QtCore/qmetatype.h>
 
 #include <QtCore/qtmochelpers.h>
