@@ -1,26 +1,60 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include "bubblemapwindow.h"
 #include "qpushbutton.h"
 #include <QMainWindow>
 #include "ui_mainwindow.h"
 #include "Employe.h"
+#include "client.h"
 #include "projet.h"
+#include "sponsor.h"
+
+#include <QComboBox>
 #include <QTableWidgetItem>
 #include <QDate>
 #include <QPalette>
 #include <QColor>
 #include <QPixmap>
-#include <QPushButton>
-//client
-#include "client.h"
-#include "bubblemapwindow.h"
-//client
-
-// === MODULE SPONSOR ===
-#include "sponsor.h"
 #include <QSortFilterProxyModel>
+#include <QRegularExpression>
+#include <QPushButton>
+#include <QMessageBox>
+#include <QFileDialog>
+#include <QTextStream>
+#include <QPdfWriter>
+#include <QPainter>
+#include <QVBoxLayout>
+#include <QLabel>
+#include <QHBoxLayout>
+#include <QPixmap>
+#include <QFile>
+#include <utility>
+#include <QTemporaryDir>
+
+//stat
+#include <QtCharts/QChartView>
+#include <QtCharts/QBarSet>
+#include <QtCharts/QBarSeries>
+#include <QtCharts/QBarCategoryAxis>
+#include <QtCharts/QPieSeries>
+#include <QtCharts/QPieSlice>
+#include <QtCharts/QValueAxis>
+#include <QtCharts/QChart>
+
+#include <QSqlQuery>
+#include <QSqlError>
+#include <QSqlQueryModel>
+
+//ressources
+#include <QMediaPlayer>
+#include <QVideoWidget>
+#include <QAudioOutput>
+#include <QSqlRecord>
+
+//client
+#include "bubblemapwindow.h"
+#include <QTimer>
+
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -34,7 +68,8 @@ class MainWindow : public QMainWindow
 
 public:
     MainWindow(QWidget *parent = nullptr);
-    ~MainWindow();
+    ~MainWindow();   
+    bool modeDev = true;
 //ressource
     void setUpInterface();
     void allerAjoutPage();

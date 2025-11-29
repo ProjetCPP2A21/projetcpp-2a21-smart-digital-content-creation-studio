@@ -2,35 +2,16 @@
 #define EMPLOYE_H
 
 #include <QMainWindow>
-
 #include <QDebug>
-#include <QPixmap>
+
 #include <QTableWidget>
-
-#include <QFile>
-#include <QTextStream>
-#include <QFileDialog>
-#include <QMessageBox>
-#include <QComboBox>
-
 #include <QString>
 #include <QDate>
 #include <QStringList>
 #include <QRandomGenerator>
 #include <QList>
-
 #include <QTableWidgetItem>
-#include <QPixmap>
-#include <QTableWidget>
 #include <QHeaderView>
-#include <QHBoxLayout>
-#include <QLabel>
-#include <QPushButton>
-#include <QtCharts/QChartView>
-#include <QtCharts/QPieSeries>
-#include <QtCharts/QPieSlice>
-#include <QtCharts/QChart>
-#include <QVBoxLayout>
 #include <QFile>
 #include <QTextStream>
 #include <QFileDialog>
@@ -85,6 +66,9 @@ public:
     bool idExiste(int id);  // Vérifie existence
     bool chargerParEmail(const QString& email);
     bool mettreAJourMdp(const QString& nouveau);
+    QSqlQueryModel* trierParPoste();
+    QSqlQueryModel* getAllEmployes();
+    QSqlQuery getStatsParPoste();
 };
 
 #endif // EMPLOYE_H

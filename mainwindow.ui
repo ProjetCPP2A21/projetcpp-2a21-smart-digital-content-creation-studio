@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1428</width>
+    <width>1421</width>
     <height>690</height>
    </rect>
   </property>
@@ -19,7 +19,7 @@
      <rect>
       <x>-80</x>
       <y>0</y>
-      <width>1431</width>
+      <width>1501</width>
       <height>701</height>
      </rect>
     </property>
@@ -30,8 +30,8 @@
      <widget class="QStackedWidget" name="stackedWidget_login">
       <property name="geometry">
        <rect>
-        <x>810</x>
-        <y>130</y>
+        <x>890</x>
+        <y>140</y>
         <width>521</width>
         <height>391</height>
        </rect>
@@ -289,7 +289,7 @@ QStackedWidget QPushButton:hover {
        <rect>
         <x>-20</x>
         <y>-20</y>
-        <width>1451</width>
+        <width>1521</width>
         <height>711</height>
        </rect>
       </property>
@@ -304,8 +304,8 @@ QStackedWidget QPushButton:hover {
      <widget class="QWidget" name="widget_side_bar" native="true">
       <property name="geometry">
        <rect>
-        <x>0</x>
-        <y>10</y>
+        <x>90</x>
+        <y>20</y>
         <width>161</width>
         <height>641</height>
        </rect>
@@ -449,14 +449,14 @@ QPushButton:hover {
      <widget class="QStackedWidget" name="stackedWidget">
       <property name="geometry">
        <rect>
-        <x>170</x>
-        <y>20</y>
+        <x>260</x>
+        <y>30</y>
         <width>1231</width>
         <height>661</height>
        </rect>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="page_projet">
        <widget class="QPushButton" name="btnSupprimerProjet">

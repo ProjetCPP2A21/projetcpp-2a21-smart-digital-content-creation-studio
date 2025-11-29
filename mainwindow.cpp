@@ -1,51 +1,11 @@
-#include "client.h"
-#include <QTimer>
-#include "ressource.h"
-#include <QSqlQuery>
-#include <QSqlError>
-#include <QSqlQueryModel>
-#include <QMessageBox>
-#include <QFileDialog>
-#include <QTextStream>
-#include <QPdfWriter>
-#include <QPainter>
-#include <QtCharts/QChartView>
-#include <QtCharts/QBarSet>
-#include <QtCharts/QBarSeries>
-#include <QtCharts/QBarCategoryAxis>
-#include <QtCharts/QValueAxis>
-#include <QtCharts/QChart>
-#include <QVBoxLayout>
-#include <QDate>
-#include <QLabel>
-#include <QHBoxLayout>
-#include <QDebug>
-
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include <QPixmap>
-#include <QFile>
-#include <QTextStream>
-#include <QFileDialog>
-#include <QMessageBox>
-#include <QComboBox>
-#include <QRegularExpression>
-#include "qsqlerror.h"
-
-#include <QMediaPlayer>
-#include <QVideoWidget>
-#include <QAudioOutput>
-#include <QSqlRecord>
-#include <QPdfWriter>
-#include <QPainter>
-#include <utility>
-#include <QTemporaryDir>
-
-
-// === SPONSOR ===
+#include "client.h"
+#include "ressource.h"
 #include "sponsor.h"
-#include <QSortFilterProxyModel>
-#include <QRegularExpression>
+
+#include <QDebug>
+#include <QSqlRecord>
 
 Ressource R; // objet global temporaire
 
@@ -307,22 +267,26 @@ void MainWindow::supprimerEmploye() {
     }
 }
 
-void MainWindow::rechercherEmploye() {
-    QString critere = ui->lineEdit_recherche->text();
-
-    if (critere.isEmpty()) {
-        Employe emp;
-        QSqlQueryModel *model = emp.afficher();
-        afficherEmployes(model);
-        delete model;
-        return;
-    }
+void MainWindow::rechercherEmploye()
+{
+    QString critere = ui->lineEdit_recherche->text().trimmed();
 
     Employe emp;
-    QSqlQueryModel *model = emp.rechercher(critere);
+    QSqlQueryModel *model = nullptr;
+
+    // Si champ vide → afficher tout
+    if (critere.isEmpty()) {
+        model = emp.afficher();
+    }
+    else {
+        model = emp.rechercher(critere);
+    }
+
     afficherEmployes(model);
-    delete model;
+
+    delete model;  // éviter les fuites
 }
+
 
 void MainWindow::afficherEmployes(QSqlQueryModel *model) {
     ui->tableWidgetEmployes->setRowCount(0);
@@ -338,67 +302,52 @@ void MainWindow::afficherEmployes(QSqlQueryModel *model) {
     }
 }
 
-void MainWindow::trierParPoste() {
+void MainWindow::trierParPoste()
+{
     Employe emp;
-    QSqlQueryModel *model = new QSqlQueryModel();
-    model->setQuery("SELECT id_employe, nom, prenom, email, poste FROM employe ORDER BY poste");
+    QSqlQueryModel *model = emp.trierParPoste();
     afficherEmployes(model);
-    delete model;
 }
+
 
 void MainWindow::exportEmployes()
 {
-    QString fileName = QFileDialog::getSaveFileName(
-        this,
-        "Exporter en Excel",
-        "employes.csv",
-        "Fichiers CSV (*.csv);;Tous les fichiers (*.*)"
-        );
-
+    QString fileName = QFileDialog::getSaveFileName(this,"Exporter","employes.csv","CSV (*.csv)");
     if (fileName.isEmpty()) return;
 
     QFile file(fileName);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        QMessageBox::warning(this, "Erreur", "Impossible d'ouvrir le fichier.");
+        QMessageBox::warning(this,"Erreur","Impossible d'ouvrir le fichier.");
         return;
     }
+
+    Employe emp;
+    QSqlQueryModel *model = emp.getAllEmployes();
 
     QTextStream out(&file);
-
-    // ----- ENCODAGE UTF-8 + BOM -----
     out.setEncoding(QStringConverter::Utf8);
-    out << QChar(0xFEFF);  // BOM pour Excel
+    out << QChar(0xFEFF);
 
-    // En-têtes
     out << "\"ID\";\"Nom\";\"Prénom\";\"Email\";\"Poste\"\n";
 
-    QSqlQuery query;
-    query.prepare("SELECT id_employe, nom, prenom, email, poste FROM employe");
-
-    if (!query.exec()) {
-        QMessageBox::warning(this, "Erreur", "Impossible d'exécuter la requête d'export.");
-        return;
-    }
-
-    // Lignes
-    while (query.next()) {
-        out << "\"" << query.value(0).toString() << "\";"
-            << "\"" << query.value(1).toString() << "\";"
-            << "\"" << query.value(2).toString() << "\";"
-            << "\"" << query.value(3).toString() << "\";"
-            << "\"" << query.value(4).toString() << "\"\n";
+    for (int i = 0; i < model->rowCount(); i++) {
+        out << "\"" << model->record(i).value("id_employe").toString() << "\";"
+            << "\"" << model->record(i).value("nom").toString()        << "\";"
+            << "\"" << model->record(i).value("prenom").toString()     << "\";"
+            << "\"" << model->record(i).value("email").toString()      << "\";"
+            << "\"" << model->record(i).value("poste").toString()      << "\"\n";
     }
 
     file.close();
-    QMessageBox::information(this, "Succès", "Liste exportée avec succès !");
+    QMessageBox::information(this,"Succès","Export terminé !");
 }
 
 
 
 void MainWindow::afficherStatistiques()
 {
-    QSqlQuery query;
-    if (!query.exec("SELECT poste, COUNT(*) as count FROM employe GROUP BY poste")) return;
+    Employe emp;
+    QSqlQuery query = emp.getStatsParPoste();
 
     QMap<QString, int> statsPoste;
     while (query.next()) {
@@ -423,25 +372,12 @@ void MainWindow::afficherStatistiques()
 
     QPieSeries *series = new QPieSeries();
     QList<QColor> palette = {
-        QColor("#FF7F32"), // orange vif
-        QColor("#FFD966"), // jaune pâle tirant sur l'orange
-        QColor("#FFA500"), // orange moyen classique
-        QColor("#1A237E"), // bleu foncé
-        QColor("#512DA8"), // violet foncé
-        QColor("#7E57C2"), // mauve
-        QColor("#3949AB"), // bleu moyen foncé
-        QColor("#FFC266"), // jaune/orangé clair
-        QColor("#FF8C42"), // orange moyen soutenu
-        QColor("#FFB366"), // orange clair
-        QColor("#673AB7"), // violet moyen
-        QColor("#9575CD"), // mauve clair
-        QColor("#4527A0"), // violet profond
-        QColor("#303F9F"), // bleu indigo
-        QColor("#283593"), // bleu foncé
-        QColor("#5C6BC0"), // bleu-violet
-        QColor("#7B1FA2")  // violet profond
+        QColor("#FF7F32"), QColor("#FFD966"), QColor("#FFA500"),
+        QColor("#1A237E"), QColor("#7E57C2"), QColor("#3949AB"),
+        QColor("#FFC266"), QColor("#FFB366"), QColor("#9575CD"),
+        QColor("#4527A0"), QColor("#303F9F"), QColor("#5C6BC0"),
+        QColor("#7B1FA2")
     };
-
 
     QList<QPair<QString, QColor>> legendItems;
     int colorIndex = 0;
@@ -454,11 +390,13 @@ void MainWindow::afficherStatistiques()
         colorIndex++;
     }
 
+    // --- Créer le graphique ---
     QChart *chart = new QChart();
     chart->addSeries(series);
     chart->setAnimationOptions(QChart::SeriesAnimations);
     chart->legend()->setVisible(false);
 
+    // Affichage des pourcentages
     for (QPieSlice *slice : series->slices()) {
         slice->setLabel(QString("%1%").arg(qRound(slice->percentage() * 100)));
         slice->setLabelVisible(true);
@@ -469,6 +407,7 @@ void MainWindow::afficherStatistiques()
     chartView->setRenderHint(QPainter::Antialiasing);
     chartView->setMinimumSize(400, 300);
 
+    // --- Créer titre et légende personnalisée ---
     QLabel *titleLabel = new QLabel("Répartition des employés par poste");
     titleLabel->setAlignment(Qt::AlignCenter);
     titleLabel->setStyleSheet("font-weight: bold; font-size: 14px;");
@@ -476,11 +415,13 @@ void MainWindow::afficherStatistiques()
     QString legendHtml;
     for (const auto &item : legendItems) {
         if (!legendHtml.isEmpty()) legendHtml += " &nbsp;&nbsp; ";
-        legendHtml += QString("<span style='color:%1; font-size: 16px;'>■</span> %2").arg(item.second.name(), item.first);
+        legendHtml += QString("<span style='color:%1; font-size: 16px;'>■</span> %2")
+                          .arg(item.second.name(), item.first);
     }
     QLabel *legendLabel = new QLabel(legendHtml);
     legendLabel->setAlignment(Qt::AlignCenter);
 
+    // --- Ajouter tout au layout ---
     QVBoxLayout *layout = new QVBoxLayout(ui->statistiques);
     layout->addWidget(titleLabel);
     layout->addWidget(legendLabel);
@@ -492,6 +433,18 @@ void MainWindow::afficherStatistiques()
 void MainWindow::login() {
     QString email = ui->lineEdit_email_login->text();
     QString mdp = ui->lineEdit_mdp_login->text();
+
+
+    // MODE DEVELOPPEUR (bypass)
+    if (modeDev) {
+        Employe dev;
+        dev.setPoste("Admin");
+        employeConnecte = dev;
+
+        ui->stackedWidget_principale->setCurrentWidget(ui->page_2);
+        redirigerSelonDroits();
+        return;
+    }
 
     Employe emp;
 
@@ -517,6 +470,12 @@ void MainWindow::login() {
 
 
 void MainWindow::ouvrirPageMdpOublie() {
+
+    if (modeDev) {
+        ui->stackedWidget_login->setCurrentWidget(ui->page_nouveau_mdp);
+        return;
+    }
+
     QString email = ui->lineEdit_email_login->text().trimmed();
 
     // Chercher l'employé qui correspond à l'email
@@ -529,6 +488,7 @@ void MainWindow::ouvrirPageMdpOublie() {
     tentative_mdp_oublie = 0;
 
 
+    ui->label_question_secrete->setWordWrap(true);
 
     ui->label_question_secrete->setText(
         "<span style='font-weight:bold; color:#55007f;'>" +
@@ -541,6 +501,11 @@ void MainWindow::ouvrirPageMdpOublie() {
 
 
 void MainWindow::verifierReponseSecrete() {
+
+    if (modeDev) {
+        ui->stackedWidget_login->setCurrentWidget(ui->page_nouveau_mdp);
+        return;
+    }
 
     if(ui->lineEdit_reponse_2->text() != employeRecup.getReponseSecrete()) {
 
@@ -560,10 +525,24 @@ void MainWindow::verifierReponseSecrete() {
 }
 
 void MainWindow::validerNouveauMdp() {
+
+    if (modeDev) {
+        ui->stackedWidget_login->setCurrentWidget(ui->page_login);
+        return;
+    }
+
     QString nouveauMdp = ui->lineEdit_nouveau_mdp->text();
 
     if(nouveauMdp.isEmpty()) {
         QMessageBox::warning(this, "Erreur", "Mot de passe vide.");
+        return;
+    }
+
+    QRegularExpression mdpRegex("^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}$");
+    if (!mdpRegex.match(nouveauMdp).hasMatch()) {
+        QMessageBox::warning(this, "Mot de passe invalide",
+                             "Le mot de passe doit contenir au moins 8 caractères, "
+                             "avec au moins une lettre et un chiffre.");
         return;
     }
 
@@ -574,8 +553,12 @@ void MainWindow::validerNouveauMdp() {
         QMessageBox::critical(this, "Erreur", "Impossible de mettre à jour le mot de passe.");
     }
 }
+
 //gestion des droits d'acces
 bool MainWindow::accesAutorise(QString page) {
+
+    if (modeDev)
+        return true;
 
     QString poste = employeConnecte.getPoste();
 
@@ -664,7 +647,6 @@ void MainWindow::ouvrirPageCategorie() {
 
 void MainWindow::redirigerSelonDroits()
 {
-    // Ordre des pages que tu préfères afficher
     if (accesAutorise("employe")) {
         ouvrirPageEmploye();
         return;
@@ -697,28 +679,6 @@ void MainWindow::redirigerSelonDroits()
 
     QMessageBox::critical(this, "Erreur", "Aucune page autorisée pour cet employé !");
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1758,43 +1718,6 @@ void MainWindow::on_pushButton_client_clicked()
     ui->stackedWidget->setCurrentIndex(2); // ou ce que tu veux
     refreshClientTable();
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 //fin gestionclient

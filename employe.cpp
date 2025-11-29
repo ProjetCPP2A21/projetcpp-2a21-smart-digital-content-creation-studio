@@ -154,3 +154,25 @@ bool Employe::mettreAJourMdp(const QString& nouveau) {
     query.bindValue(":id", id_employe);
     return query.exec();
 }
+
+QSqlQueryModel* Employe::trierParPoste()
+{
+    QSqlQueryModel *model = new QSqlQueryModel();
+    model->setQuery("SELECT id_employe, nom, prenom, email, poste FROM employe ORDER BY poste");
+    return model;
+}
+
+QSqlQueryModel* Employe::getAllEmployes()
+{
+    QSqlQueryModel *model = new QSqlQueryModel();
+    model->setQuery("SELECT id_employe, nom, prenom, email, poste FROM employe");
+    return model;
+}
+
+QSqlQuery Employe::getStatsParPoste()
+{
+    QSqlQuery query;
+    query.prepare("SELECT poste, COUNT(*) FROM employe GROUP BY poste");
+    query.exec();
+    return query;
+}
