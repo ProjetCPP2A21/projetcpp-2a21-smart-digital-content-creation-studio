@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/new/te">
+        <file>TD_BD.jpg</file>
+    </qresource>
+</RCC>

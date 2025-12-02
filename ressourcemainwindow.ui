@@ -1,0 +1,447 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ressourceMainWindow</class>
+ <widget class="QMainWindow" name="ressourceMainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1262</width>
+    <height>707</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>ressourceMainWindow</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">background-color: #1E1E2F; color: white; QHeaderView::section { background-color: #5500FF; color: white; }.</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QStackedWidget" name="stackedWidget">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>1341</width>
+      <height>701</height>
+     </rect>
+    </property>
+    <property name="currentIndex">
+     <number>0</number>
+    </property>
+    <widget class="QWidget" name="page">
+     <widget class="QCheckBox" name="Imagecheck">
+      <property name="geometry">
+       <rect>
+        <x>600</x>
+        <y>50</y>
+        <width>71</width>
+        <height>24</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Image</string>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="Videocheck">
+      <property name="geometry">
+       <rect>
+        <x>450</x>
+        <y>50</y>
+        <width>71</width>
+        <height>24</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Vidéo</string>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="audiocheck">
+      <property name="geometry">
+       <rect>
+        <x>530</x>
+        <y>50</y>
+        <width>61</width>
+        <height>24</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>audio</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="RechercheRess">
+      <property name="geometry">
+       <rect>
+        <x>450</x>
+        <y>80</y>
+        <width>281</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="PDFRess">
+      <property name="geometry">
+       <rect>
+        <x>1160</x>
+        <y>80</y>
+        <width>71</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>PDF</string>
+      </property>
+     </widget>
+     <widget class="QTableView" name="RessourceTab">
+      <property name="geometry">
+       <rect>
+        <x>450</x>
+        <y>130</y>
+        <width>791</width>
+        <height>561</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="AjoutRess">
+      <property name="geometry">
+       <rect>
+        <x>730</x>
+        <y>80</y>
+        <width>81</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Ajouter</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="ModifieRess">
+      <property name="geometry">
+       <rect>
+        <x>810</x>
+        <y>80</y>
+        <width>91</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Modifer</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="MiseajourRess">
+      <property name="geometry">
+       <rect>
+        <x>900</x>
+        <y>80</y>
+        <width>71</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>MÂJ</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="StatistiqueRess">
+      <property name="geometry">
+       <rect>
+        <x>1080</x>
+        <y>80</y>
+        <width>81</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Stats</string>
+      </property>
+     </widget>
+     <widget class="QGroupBox" name="groupBox">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>10</y>
+        <width>431</width>
+        <height>681</height>
+       </rect>
+      </property>
+      <property name="title">
+       <string>Formulaire d'ajout</string>
+      </property>
+      <widget class="QLineEdit" name="ID_RESSOURCE">
+       <property name="geometry">
+        <rect>
+         <x>130</x>
+         <y>100</y>
+         <width>221</width>
+         <height>51</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+      <widget class="QLineEdit" name="TITRE">
+       <property name="geometry">
+        <rect>
+         <x>132</x>
+         <y>170</y>
+         <width>221</width>
+         <height>51</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+      <widget class="QLineEdit" name="TAGS">
+       <property name="geometry">
+        <rect>
+         <x>132</x>
+         <y>330</y>
+         <width>221</width>
+         <height>51</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+      <widget class="QLineEdit" name="FORMAT">
+       <property name="geometry">
+        <rect>
+         <x>130</x>
+         <y>420</y>
+         <width>221</width>
+         <height>51</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+      <widget class="QComboBox" name="TYPE">
+       <property name="geometry">
+        <rect>
+         <x>140</x>
+         <y>250</y>
+         <width>111</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <item>
+        <property name="text">
+         <string>Audio</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Video</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Image</string>
+        </property>
+       </item>
+      </widget>
+      <widget class="QDateEdit" name="DATECREATION">
+       <property name="geometry">
+        <rect>
+         <x>190</x>
+         <y>510</y>
+         <width>141</width>
+         <height>41</height>
+        </rect>
+       </property>
+      </widget>
+      <widget class="QLabel" name="ID_label">
+       <property name="geometry">
+        <rect>
+         <x>12</x>
+         <y>110</y>
+         <width>101</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>ID Resseource   :</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="Titre_Label">
+       <property name="geometry">
+        <rect>
+         <x>30</x>
+         <y>180</y>
+         <width>63</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Titre    :</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="Type_label">
+       <property name="geometry">
+        <rect>
+         <x>40</x>
+         <y>250</y>
+         <width>63</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Type   :</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="Tags_label">
+       <property name="geometry">
+        <rect>
+         <x>50</x>
+         <y>340</y>
+         <width>63</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Tags   :</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="Format_label">
+       <property name="geometry">
+        <rect>
+         <x>40</x>
+         <y>430</y>
+         <width>63</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Format   :</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="Datecreation_label">
+       <property name="geometry">
+        <rect>
+         <x>30</x>
+         <y>520</y>
+         <width>161</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Date de creation :</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="ImpBut">
+       <property name="geometry">
+        <rect>
+         <x>180</x>
+         <y>600</y>
+         <width>151</width>
+         <height>41</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Upload File</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="Format_label_2">
+       <property name="geometry">
+        <rect>
+         <x>30</x>
+         <y>600</y>
+         <width>121</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Upload fichier   :</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="ID_label_2">
+       <property name="geometry">
+        <rect>
+         <x>30</x>
+         <y>50</y>
+         <width>171</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>ID  projet (si deja existe)  :</string>
+       </property>
+      </widget>
+      <widget class="QLineEdit" name="ID_PROJET">
+       <property name="geometry">
+        <rect>
+         <x>220</x>
+         <y>30</y>
+         <width>201</width>
+         <height>41</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QPushButton" name="SupprimerRess">
+      <property name="geometry">
+       <rect>
+        <x>970</x>
+        <y>80</y>
+        <width>111</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Supprimer</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="outputajout">
+      <property name="geometry">
+       <rect>
+        <x>800</x>
+        <y>250</y>
+        <width>391</width>
+        <height>361</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QLabel" name="labelAffichage">
+      <property name="geometry">
+       <rect>
+        <x>802</x>
+        <y>259</y>
+        <width>381</width>
+        <height>351</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>fichier selecté</string>
+      </property>
+     </widget>
+     <zorder>outputajout</zorder>
+     <zorder>labelAffichage</zorder>
+     <zorder>RessourceTab</zorder>
+     <zorder>Imagecheck</zorder>
+     <zorder>Videocheck</zorder>
+     <zorder>audiocheck</zorder>
+     <zorder>RechercheRess</zorder>
+     <zorder>PDFRess</zorder>
+     <zorder>AjoutRess</zorder>
+     <zorder>ModifieRess</zorder>
+     <zorder>MiseajourRess</zorder>
+     <zorder>StatistiqueRess</zorder>
+     <zorder>groupBox</zorder>
+     <zorder>SupprimerRess</zorder>
+    </widget>
+    <widget class="QWidget" name="page_2"/>
+   </widget>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
