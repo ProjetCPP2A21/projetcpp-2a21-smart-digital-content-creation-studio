@@ -1,0 +1,16 @@
+release/main.o
+release/mainwindow.o
+release/connection.o
+release/employe.o
+release/client.o
+release/projet.o
+release/sponsor.o
+release/ressource.o
+release/bubblemapwidget.o
+release/bubblemapwindow.o
+release/chatbot.o
+release/qrc_ressources.o
+release/moc_mainwindow.o
+release/moc_bubblemapwidget.o
+release/moc_bubblemapwindow.o
+release/moc_chatbot.o
