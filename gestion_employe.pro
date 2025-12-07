@@ -1,4 +1,4 @@
-QT += core gui charts widgets sql
+QT += core gui charts widgets sql serialport
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -10,12 +10,14 @@ CONFIG += c++17
 
 SOURCES += \
     Employe.cpp \
+    arduino.cpp \
     main.cpp \
     gestion_employe.cpp\
     connection.cpp
 
 HEADERS += \
     Employe.h \
+    arduino.h \
     gestion_employe.h\
     connection.h
 

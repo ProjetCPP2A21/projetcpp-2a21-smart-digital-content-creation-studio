@@ -128,3 +128,47 @@ bool Employe::idExiste(int id) {
     query.exec();
     return query.next();  // True si au moins une ligne
 }
+
+
+// --- TRIER PAR POSTE ---
+QSqlQueryModel* Employe::trierParPoste()
+{
+    QSqlQueryModel *model = new QSqlQueryModel();
+    model->setQuery("SELECT id_employe, nom, prenom, email, poste FROM employe ORDER BY poste");
+    return model;
+}
+
+
+// --- OBTENIR TOUS LES EMPLOYÉS (pour export) ---
+QSqlQueryModel* Employe::getAllEmployes()
+{
+    QSqlQueryModel *model = new QSqlQueryModel();
+    model->setQuery("SELECT id_employe, nom, prenom, email, poste FROM employe");
+    return model;
+}
+
+// --- STATISTIQUES PAR POSTE ---
+QSqlQuery Employe::getStatsParPoste()
+{
+    QSqlQuery query;
+    query.prepare("SELECT poste, COUNT(*) FROM employe GROUP BY poste");
+    query.exec();
+    return query;
+}
+
+//pour arduino
+QString Employe::getNomComplet(int id)
+{
+    QSqlQuery query;
+    query.prepare("SELECT nom, prenom FROM employe WHERE id_employe = :id");
+    query.bindValue(":id", id);
+    query.exec();
+
+    if (query.next()) {
+        QString nom = query.value("nom").toString();
+        QString prenom = query.value("prenom").toString();
+        return nom + " " + prenom;
+    }
+
+    return "";   // si employé introuvable
+}

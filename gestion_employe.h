@@ -2,7 +2,7 @@
 #define GESTION_EMPLOYE_H
 
 #include <QMainWindow>
-
+#include <arduino.h>
 #include <QDebug>
 #include <QPixmap>
 #include <QTableWidget>
@@ -40,6 +40,7 @@
 
 #include <QTemporaryDir>
 
+
 QT_BEGIN_NAMESPACE
 
 namespace Ui {
@@ -52,6 +53,7 @@ class gestion_employe : public QMainWindow
     Q_OBJECT
 
 public:
+    QTimer* timerWelcome;
     gestion_employe(QWidget *parent = nullptr);
     ~gestion_employe();
 private slots:
@@ -64,10 +66,12 @@ private slots:
     void exportEmployes();
     void afficherStatistiques();
     void onItemChanged(QTableWidgetItem *item);
+    void simulerEmpreinte();
 
 private:
 
     Ui::gestion_employe *ui;
+    Arduino A;
 };
 
 

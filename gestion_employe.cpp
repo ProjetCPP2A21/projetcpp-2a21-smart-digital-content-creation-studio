@@ -2,7 +2,9 @@
 #include "employe.h"
 #include "ui_gestion_employe.h"
 #include "qsqlerror.h"
-
+#include <QThread>
+#include "qtimer.h"
+#include <QSqlRecord>
 
 
 gestion_employe::gestion_employe(QWidget *parent)
@@ -11,7 +13,20 @@ gestion_employe::gestion_employe(QWidget *parent)
 {
     ui->setupUi(this);
 
-    ////////////modifcationnnnnnn//////////////////////
+////////////modifcationnnnnnn/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Connexion Arduino
+    A.connect_arduino();
+
+    connect(ui->btnSimuler, &QPushButton::clicked,
+            this, &gestion_employe::simulerEmpreinte);
+
+    A.write_to_arduino("INIT\n");
+
+    timerWelcome = new QTimer(this);
+    timerWelcome->setSingleShot(true);
+
+/////fin modification
+///
     //Rendre le tableau éditable (double-clic ou F2 pour éditer une cellule)
     ui->tableWidgetEmployes->setEditTriggers(QAbstractItemView::DoubleClicked | QAbstractItemView::EditKeyPressed);
 
@@ -209,23 +224,26 @@ void gestion_employe::supprimerEmploye() {
     }
 }
 
-void gestion_employe::rechercherEmploye() {
-    QString critere = ui->lineEdit_recherche->text();
-
-    // Vérifier si la saisie est vide
-    if (critere.isEmpty()) {
-        Employe emp;
-        QSqlQueryModel *model = emp.afficher();
-        afficherEmployes(model);
-        delete model;
-        return;
-    }
+void gestion_employe::rechercherEmploye()
+{
+    QString critere = ui->lineEdit_recherche->text().trimmed();
 
     Employe emp;
-    QSqlQueryModel *model = emp.rechercher(critere);
+    QSqlQueryModel *model = nullptr;
+
+    // Si champ vide → afficher tout
+    if (critere.isEmpty()) {
+        model = emp.afficher();
+    }
+    else {
+        model = emp.rechercher(critere);
+    }
+
     afficherEmployes(model);
-    delete model;
+
+    delete model;  // éviter les fuites
 }
+
 
 void gestion_employe::afficherEmployes(QSqlQueryModel *model) {
     ui->tableWidgetEmployes->setRowCount(0);
@@ -247,98 +265,84 @@ void gestion_employe::afficherEmployes(QSqlQueryModel *model) {
     qDebug() << "Affichage de" << model->rowCount() << "employés.";
 }
 
-void gestion_employe::trierParPoste() {
+void gestion_employe::trierParPoste()
+{
     Employe emp;
-    QSqlQueryModel *model = new QSqlQueryModel();
-    // Query avec ORDER BY
-    model->setQuery("SELECT id_employe, nom, prenom, email, poste FROM employe ORDER BY poste");
+    QSqlQueryModel *model = emp.trierParPoste();
     afficherEmployes(model);
-    delete model;
 }
+
 
 void gestion_employe::exportEmployes()
 {
-    QString fileName = QFileDialog::getSaveFileName(
-        this,
-        "Exporter en Excel",
-        "employes.csv",
-        "Fichiers CSV (*.csv);;Tous les fichiers (*.*)"
-        );
-
+    QString fileName = QFileDialog::getSaveFileName(this,"Exporter","employes.csv","CSV (*.csv)");
     if (fileName.isEmpty()) return;
 
     QFile file(fileName);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        QMessageBox::warning(this, "Erreur", "Impossible d'ouvrir le fichier.");
+        QMessageBox::warning(this,"Erreur","Impossible d'ouvrir le fichier.");
         return;
     }
+
+    Employe emp;
+    QSqlQueryModel *model = emp.getAllEmployes();
 
     QTextStream out(&file);
-
-    // ----- ENCODAGE UTF-8 + BOM -----
     out.setEncoding(QStringConverter::Utf8);
-    out << QChar(0xFEFF);  // BOM pour Excel
+    out << QChar(0xFEFF);
 
-    // En-têtes
     out << "\"ID\";\"Nom\";\"Prénom\";\"Email\";\"Poste\"\n";
 
-    QSqlQuery query;
-    query.prepare("SELECT id_employe, nom, prenom, email, poste FROM employe");
-
-    if (!query.exec()) {
-        QMessageBox::warning(this, "Erreur", "Impossible d'exécuter la requête d'export.");
-        return;
-    }
-
-    // Lignes
-    while (query.next()) {
-        out << "\"" << query.value(0).toString() << "\";"
-            << "\"" << query.value(1).toString() << "\";"
-            << "\"" << query.value(2).toString() << "\";"
-            << "\"" << query.value(3).toString() << "\";"
-            << "\"" << query.value(4).toString() << "\"\n";
+    for (int i = 0; i < model->rowCount(); i++) {
+        out << "\"" << model->record(i).value("id_employe").toString() << "\";"
+            << "\"" << model->record(i).value("nom").toString()        << "\";"
+            << "\"" << model->record(i).value("prenom").toString()     << "\";"
+            << "\"" << model->record(i).value("email").toString()      << "\";"
+            << "\"" << model->record(i).value("poste").toString()      << "\"\n";
     }
 
     file.close();
-    QMessageBox::information(this, "Succès", "Liste exportée avec succès !");
+    QMessageBox::information(this,"Succès","Export terminé !");
 }
+
 
 
 void gestion_employe::afficherStatistiques()
 {
-    QSqlQuery query;
+    Employe emp;
 
-    if (!query.exec("SELECT poste, COUNT(*) as count FROM employe GROUP BY poste")) {
-        qDebug() << "Erreur query stats:" << query.lastError().text();
-        ui->statusbar->showMessage("Erreur lors du calcul des stats !");
-        return;
-    }
+    // --- 1. Récupérer les statistiques depuis le modèle ---
+    QSqlQuery query = emp.getStatsParPoste();
 
     QMap<QString, int> statsPoste;
+
     while (query.next()) {
         QString poste = query.value(0).toString();
         int count = query.value(1).toInt();
+
         if (!poste.isEmpty()) {
             statsPoste[poste] += count;
         }
     }
 
+    // --- 2. Vérification ---
     if (statsPoste.isEmpty()) {
         ui->statusbar->showMessage("Aucune donnée pour les statistiques !");
         return;
     }
 
+    // --- 3. Nettoyer l'ancienne vue ---
     if (ui->statistiques->layout()) {
         QLayout *oldLayout = ui->statistiques->layout();
         QLayoutItem *item;
         while ((item = oldLayout->takeAt(0)) != nullptr) {
-            delete item->widget();
+            delete item->widget();  // supprime QLabel, chartView, etc.
             delete item;
         }
         delete oldLayout;
     }
 
-
+    // --- 4. Construire la série du graphique ---
     QPieSeries *series = new QPieSeries();
 
     QList<QColor> palette = {
@@ -351,54 +355,88 @@ void gestion_employe::afficherStatistiques()
     };
 
     QList<QPair<QString, QColor>> legendItems;
+
     int colorIndex = 0;
     for (auto it = statsPoste.begin(); it != statsPoste.end(); ++it) {
         QPieSlice *slice = series->append(it.key(), it.value());
         QColor color = palette[colorIndex % palette.size()];
+
         slice->setPen(QPen(Qt::white, 1));
-        slice->setBrush(color); // appliquer couleur
+        slice->setBrush(color);
+
         legendItems.append(qMakePair(it.key(), color));
         colorIndex++;
     }
 
+    // --- 5. Créer le graphique ---
     QChart *chart = new QChart();
     chart->addSeries(series);
     chart->setAnimationOptions(QChart::SeriesAnimations);
-    chart->legend()->setVisible(false); // Masquer la légende par défaut
+    chart->legend()->setVisible(false);
 
-    // Définir les labels des slices comme pourcentages (après addSeries pour calculer percentage())
+    // Afficher les pourcentages
     for (QPieSlice *slice : series->slices()) {
         slice->setLabel(QString("%1%").arg(qRound(slice->percentage() * 100)));
         slice->setLabelVisible(true);
-        slice->setLabelPosition(QPieSlice::LabelOutside); // Positionner les labels à l'extérieur avec lignes
+        slice->setLabelPosition(QPieSlice::LabelOutside);
     }
 
     QChartView *chartView = new QChartView(chart);
     chartView->setRenderHint(QPainter::Antialiasing);
     chartView->setMinimumSize(400, 300);
 
-    // Titre séparé
+    // --- 6. Créer la légende personnalisée ---
     QLabel *titleLabel = new QLabel("Répartition des employés par poste");
     titleLabel->setAlignment(Qt::AlignCenter);
     titleLabel->setStyleSheet("font-weight: bold; font-size: 14px;");
 
-    // Créer une légende personnalisée avec carrés colorés et textes noirs
     QString legendHtml;
     for (const auto &item : legendItems) {
-        if (!legendHtml.isEmpty()) {
-            legendHtml += " &nbsp;&nbsp; ";
-        }
-        legendHtml += QString("<span style='color:%1; font-size: 16px;'>■</span> %2").arg(item.second.name(), item.first);
+        if (!legendHtml.isEmpty()) legendHtml += " &nbsp;&nbsp; ";
+        legendHtml += QString("<span style='color:%1; font-size: 16px;'>■</span> %2")
+                          .arg(item.second.name(), item.first);
     }
+
     QLabel *legendLabel = new QLabel(legendHtml);
     legendLabel->setAlignment(Qt::AlignCenter);
 
+    // --- 7. Ajouter tout au layout ---
     QVBoxLayout *layout = new QVBoxLayout(ui->statistiques);
     layout->addWidget(titleLabel);
     layout->addWidget(legendLabel);
     layout->addWidget(chartView);
     ui->statistiques->setLayout(layout);
 
-    ui->statusbar->showMessage(QString("Statistiques affichées : %1 postes uniques.").arg(statsPoste.size()));
+    // --- 8. Status bar ---
+    ui->statusbar->showMessage(
+        QString("Statistiques affichées : %1 postes uniques.")
+            .arg(statsPoste.size())
+        );
 }
 
+void gestion_employe::simulerEmpreinte()
+{
+    A.getserial()->flush();
+    A.getserial()->write("\n");
+    QThread::msleep(50);
+
+    int id = ui->inputID->text().toInt();
+
+    Employe e;
+    QString nomComplet = e.getNomComplet(id);
+
+    if (id == 0) {
+        // aucun ID saisi → invite à poser le doigt
+        A.write_to_arduino("INIT\n");
+    }
+    else if (!nomComplet.isEmpty()) {
+        // ID valide → afficher nom
+        timerWelcome->start(5000);   // pour Qt
+        QByteArray msg = "OK|" + nomComplet.toUtf8() + "\n";
+        A.write_to_arduino(msg);
+    }
+    else {
+        // ID saisi mais non trouvé → message d'erreur
+        A.write_to_arduino("ERR|RETRY\n");
+    }
+}

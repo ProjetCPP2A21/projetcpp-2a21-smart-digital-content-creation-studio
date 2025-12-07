@@ -74,6 +74,11 @@ public:
     bool modifier();  // Met à jour l'employé courant
     QSqlQueryModel* rechercher(const QString& critere);  // Recherche simple (ex. par nom/email)
     bool idExiste(int id);  // Vérifie existence
+    QSqlQueryModel* trierParPoste();
+    QSqlQueryModel* getAllEmployes();
+    QSqlQuery getStatsParPoste();
+    QString getNomComplet(int id);
+
 };
 
 #endif // EMPLOYE_H
