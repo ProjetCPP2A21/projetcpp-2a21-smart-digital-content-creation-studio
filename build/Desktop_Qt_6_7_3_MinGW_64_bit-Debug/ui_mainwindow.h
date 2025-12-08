@@ -157,6 +157,7 @@ public:
     QLabel *label_mdp_2;
     QLineEdit *lineEdit_mdp;
     QLabel *label_mdp;
+    QPushButton *btnScanner;
     QWidget *statistiques;
     QWidget *page_media;
     QStackedWidget *stackedWidget_3;
@@ -1269,6 +1270,10 @@ public:
         label_mdp = new QLabel(groupBox);
         label_mdp->setObjectName("label_mdp");
         label_mdp->setGeometry(QRect(10, 229, 211, 21));
+        btnScanner = new QPushButton(groupBox);
+        btnScanner->setObjectName("btnScanner");
+        btnScanner->setGeometry(QRect(340, 499, 91, 31));
+        btnScanner->setStyleSheet(QString::fromUtf8(""));
         tabWidget->addTab(acceuil, QString());
         statistiques = new QWidget();
         statistiques->setObjectName("statistiques");
@@ -1794,7 +1799,7 @@ public:
 
         stackedWidget_principale->setCurrentIndex(1);
         stackedWidget_login->setCurrentIndex(0);
-        stackedWidget->setCurrentIndex(1);
+        stackedWidget->setCurrentIndex(2);
         tabWidget->setCurrentIndex(0);
         stackedWidget_3->setCurrentIndex(0);
         stackedWidget_2->setCurrentIndex(0);
@@ -1880,7 +1885,7 @@ public:
         btnSupprimer_3->setText(QCoreApplication::translate("MainWindow", "Supprimer", nullptr));
         leSearch_6->setPlaceholderText(QCoreApplication::translate("MainWindow", "Recherche...", nullptr));
         pushButton_9->setText(QCoreApplication::translate("MainWindow", "Trier", nullptr));
-        pushButton_7->setText(QCoreApplication::translate("MainWindow", "Export CSV", nullptr));
+        pushButton_7->setText(QCoreApplication::translate("MainWindow", "Export PDF", nullptr));
         pushButton_8->setText(QCoreApplication::translate("MainWindow", "Statistiques", nullptr));
         pushButton_6->setText(QCoreApplication::translate("MainWindow", "Clients Inactifs", nullptr));
         pushButton_10->setText(QCoreApplication::translate("MainWindow", "Fiche Client", nullptr));
@@ -1959,6 +1964,7 @@ public:
         label_question->setText(QCoreApplication::translate("MainWindow", "<html><head/><body><p><span style=\" font-weight:700; color:#aa55ff;\">Qestion secrete</span></p></body></html>", nullptr));
         label_mdp_2->setText(QCoreApplication::translate("MainWindow", "<html><head/><body><p><span style=\" font-weight:700; color:#aa55ff;\">reponse secrete</span></p></body></html>", nullptr));
         label_mdp->setText(QCoreApplication::translate("MainWindow", "<html><head/><body><p><span style=\" font-size:10pt; font-weight:700; color:#aa55ff;\">Mot de passe</span></p></body></html>", nullptr));
+        btnScanner->setText(QCoreApplication::translate("MainWindow", "scanner", nullptr));
         tabWidget->setTabText(tabWidget->indexOf(acceuil), QCoreApplication::translate("MainWindow", "       accueil         ", nullptr));
         tabWidget->setTabText(tabWidget->indexOf(statistiques), QCoreApplication::translate("MainWindow", "    statistiques    ", nullptr));
         Imagecheck->setText(QCoreApplication::translate("MainWindow", "Image", nullptr));

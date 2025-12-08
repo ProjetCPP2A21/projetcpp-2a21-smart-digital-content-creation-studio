@@ -50,11 +50,7 @@ void BubbleMapWidget::addClient(const QString &name, const QString &city)
     }
     // Pour Bizerte : lignes vers le haut
     else if (normalizedCity == "Bizerte") {
-        if (count == 0) {
-            offset = -30;  // Premier = EN HAUT
-        } else {
-            offset = -10;   // Deuxième = EN BAS
-        }
+        offset = -40 + (count * 25);
     }
     else if (normalizedCity == "Zaghouan") {
         offset = count * -17;  // Espacement vertical

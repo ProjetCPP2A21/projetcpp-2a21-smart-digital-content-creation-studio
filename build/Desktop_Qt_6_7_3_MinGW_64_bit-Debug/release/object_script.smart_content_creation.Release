@@ -1,3 +1,4 @@
+release/arduino_manager.o
 release/bubblemapwidget.o
 release/bubblemapwindow.o
 release/client.o
@@ -9,6 +10,7 @@ release/projet.o
 release/sponsor.o
 release/ressource.o
 release/qrc_ressources.o
+release/moc_arduino_manager.o
 release/moc_bubblemapwidget.o
 release/moc_bubblemapwindow.o
 release/moc_mainwindow.o

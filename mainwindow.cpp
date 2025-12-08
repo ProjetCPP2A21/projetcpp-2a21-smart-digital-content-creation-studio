@@ -55,7 +55,8 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-
+    loadFingerprintMap();
+    qDebug() << "fingerprintMap loaded:" << fingerprintMap;
     //clients
     ui->stackedWidget->setCurrentIndex(0);
     refreshClientTable();
@@ -66,6 +67,47 @@ MainWindow::MainWindow(QWidget *parent)
             this, &MainWindow::refreshClientTable);
     timerRefresh->start(3000);
     //finclient
+
+    //ARDUINO
+
+
+    arduino = new ArduinoManager(this);
+    arduino->connectArduino("COM9");
+    arduino->sendCommand("CLEAR_DB");
+
+
+
+    // DOUBLON
+    connect(arduino, &ArduinoManager::duplicateDetected,
+            this, &MainWindow::onDuplicateDetected);
+
+    connect(arduino, &ArduinoManager::noDuplicate,
+            this, &MainWindow::onNoDuplicate);
+
+    // ENROLL
+    connect(arduino, &ArduinoManager::enrollOk,
+            this, &MainWindow::onEnrollOk);
+
+    connect(arduino, &ArduinoManager::enrollFail,
+            this, &MainWindow::onEnrollFail);
+
+    // IDENTIFICATION
+    connect(arduino, &ArduinoManager::fingerId,
+            this, &MainWindow::onFingerId);
+
+    // ERREURS
+    connect(arduino, &ArduinoManager::captureError,
+            this, &MainWindow::onCaptureError);
+
+    // CLEAR DB
+    connect(arduino, &ArduinoManager::clearDbOk,
+            this, &MainWindow::onClearDbOk);
+
+    connect(arduino, &ArduinoManager::clearDbFail,
+            this, &MainWindow::onClearDbFail);
+
+    //FIN ARDUINO
+
 
 //ressource
     setUpInterface();
@@ -88,6 +130,10 @@ MainWindow::MainWindow(QWidget *parent)
 
     // Click table row
     connect(ui->tableView_2, &QTableView::clicked, this, &MainWindow::on_tableView_2_clicked);
+
+    //ARDUINO
+    //connect(ui->btnScanner, &QPushButton::clicked, this, &MainWindow::on_btnScanner_clicked);
+
 
 
 
@@ -207,51 +253,237 @@ void MainWindow::setActiveButton(QPushButton *btn)
 }
 
 // Gestion employés
-void MainWindow::ajouterEmploye() {
-    QString nom = ui->lineEdit_nom->text();
-    QString prenom = ui->lineEdit_prenom->text();
-    QString mdp = ui->lineEdit_mdp->text();
-    QString email = ui->lineEdit_email->text();
-    QString poste = ui->comboBox->currentText();
-    QString questionSecrete = ui->comboBox_q->currentText();
-    QString reponseSecrete = ui->lineEdit_reponse->text();
+//ARDUINO
+void MainWindow::ajouterEmploye()
+{
+    tempNom     = ui->lineEdit_nom->text().trimmed();
+    tempPrenom  = ui->lineEdit_prenom->text().trimmed();
+    tempEmail   = ui->lineEdit_email->text().trimmed();
+    tempMdp     = ui->lineEdit_mdp->text().trimmed();
+    tempPoste   = ui->comboBox->currentText().trimmed();
+    tempQ       = ui->comboBox_q->currentText().trimmed();
+    tempR       = ui->lineEdit_reponse->text().trimmed();
 
-    if (nom.isEmpty() || prenom.isEmpty() || email.isEmpty() || mdp.isEmpty() || reponseSecrete.isEmpty()) {
-        QMessageBox::warning(this, "Champs manquants", "Veuillez remplir tous les champs");
+    if (tempNom.isEmpty() || tempPrenom.isEmpty() || tempEmail.isEmpty() ||
+        tempPoste.isEmpty() || tempQ.isEmpty() || tempR.isEmpty())
+    {
+        QMessageBox::warning(this, "Champs manquants", "Veuillez remplir tous les champs.");
         return;
     }
 
-    QRegularExpression emailRegex("^[A-Za-z0-9._%+-]+@(gmail\\.com|yahoo\\.fr|outlook\\.com)$", QRegularExpression::CaseInsensitiveOption);
-    if (!emailRegex.match(email).hasMatch()) {
-        QMessageBox::warning(this, "Email invalide", "Veuillez entrer une adresse email valide");
+    QRegularExpression regexEmail("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
+    if (!regexEmail.match(tempEmail).hasMatch()) {
+        QMessageBox::warning(this, "Email invalide", "Adresse email invalide.");
         return;
     }
+
+    modeActuel = Mode_Ajout;
+    waitingDuplicate = true;
+
+    arduino->sendCommand("CHECK_DUPLICATE");
+
+    QMessageBox::information(this, "Empreinte", "Placez votre doigt sur le capteur.");
+}
+
+void MainWindow::onDuplicateDetected()
+{
+    waitingDuplicate = false;
+    modeActuel = Mode_Aucun;
+
+    QMessageBox::warning(this, "Doublon", "Cette empreinte existe déjà !");
+}
+
+void MainWindow::onNoDuplicate()
+{
+    waitingDuplicate = false;
 
     Employe emp;
-    emp.setNom(nom);
-    emp.setPrenom(prenom);
-    emp.setMdp(mdp);
-    emp.setEmail(email);
-    emp.setPoste(poste);
-    emp.setQuestionSecrete(questionSecrete);
-    emp.setReponseSecrete(reponseSecrete);
+    emp.setNom(tempNom);
+    emp.setPrenom(tempPrenom);
+    emp.setEmail(tempEmail);
+    emp.setMdp(tempMdp);
+    emp.setPoste(tempPoste);
+    emp.setQuestionSecrete(tempQ);
+    emp.setReponseSecrete(tempR);
 
-    if (emp.ajouter()) {
-        QMessageBox::information(this, "Succès", "Employé ajouté avec succès !");
-        QSqlQueryModel *model = emp.afficher();
-        afficherEmployes(model);
-        delete model;
-        afficherStatistiques();
+    if (!emp.ajouter()) {
+        QMessageBox::critical(this, "Erreur BD", "Impossible d'ajouter l'employé.");
+        modeActuel = Mode_Aucun;
+        return;
+    }
 
-        ui->lineEdit_nom->clear();
-        ui->lineEdit_prenom->clear();
-        ui->lineEdit_email->clear();
-        ui->lineEdit_reponse->clear();
-        ui->lineEdit_mdp->clear();
-    } else {
-        QMessageBox::critical(this, "Erreur", "Erreur lors de l'ajout de l'employé !");
+    tempEmployeeID = emp.getId_employe();
+
+    tempFingerprintID = getNextFingerprintSlot();
+
+    if (tempFingerprintID == -1) {
+        QMessageBox::critical(this, "Erreur", "Mémoire capteur pleine !");
+        return;
+    }
+
+    fingerprintMap[tempFingerprintID] = tempEmployeeID;
+    saveFingerprintMap();
+
+    QString enrollCommand = "ENROLL;" + QString::number(tempFingerprintID);
+    arduino->sendCommand(enrollCommand);
+
+    waitingEnroll = true;
+    modeActuel = Mode_Ajout;
+
+    QMessageBox::information(this, "Empreinte", "Retirez puis replacez votre doigt.");
+}
+
+void MainWindow::onEnrollOk()
+{
+    waitingEnroll = false;
+    modeActuel = Mode_Aucun;
+
+    QMessageBox::information(
+        this,
+        "Succès",
+        "Employé ajouté avec succès !\nBienvenue " +
+            tempPrenom + " " + tempNom + " 🎉"
+        );
+
+    saveFingerprintMap();
+
+    Employe emp;
+    QSqlQueryModel *model = emp.afficher();
+    afficherEmployes(model);
+    delete model;
+
+    ui->lineEdit_nom->clear();
+    ui->lineEdit_prenom->clear();
+    ui->lineEdit_email->clear();
+    ui->lineEdit_reponse->clear();
+    ui->lineEdit_mdp->clear();
+}
+
+void MainWindow::on_btnScanner_clicked()
+{
+    modeActuel = Mode_Identification;
+
+    QMessageBox::information(
+        this,
+        "Scanner une empreinte",
+        "Veuillez mettre votre empreinte sur le capteur."
+        );
+
+    arduino->sendCommand("SCAN");
+}
+
+void MainWindow::onFingerId(int id)
+{
+    if (!fingerprintMap.contains(id)) {
+        QMessageBox::warning(this, "Erreur", "Empreinte inexistante ❌");
+        return;
+    }
+
+    int realEmployeeID = fingerprintMap[id];
+    verifierEmployeDansBD(realEmployeeID);
+}
+
+#include <QFile>
+#include <QJsonDocument>
+#include <QJsonObject>
+
+void MainWindow::loadFingerprintMap()
+{
+    QFile file("fingerprintMap.json");
+    if (!file.open(QIODevice::ReadOnly)) return;
+
+    QJsonDocument doc = QJsonDocument::fromJson(file.readAll());
+    QJsonObject obj = doc.object();
+
+    fingerprintMap.clear();
+
+    for (QString key : obj.keys()) {
+        fingerprintMap[key.toInt()] = obj[key].toInt();
     }
 }
+
+
+void MainWindow::saveFingerprintMap()
+{
+    QFile file("fingerprintMap.json");
+    if (!file.open(QIODevice::WriteOnly)) return;
+
+    QJsonObject obj;
+    for (auto it = fingerprintMap.begin(); it != fingerprintMap.end(); ++it)
+        obj[QString::number(it.key())] = it.value();
+
+    QJsonDocument doc(obj);
+    file.write(doc.toJson());
+}
+
+
+int MainWindow::getNextFingerprintSlot()
+{
+    for (int i = 1; i <= 100; i++) {
+        if (!fingerprintMap.contains(i))
+            return i;
+    }
+    return -1;
+}
+
+
+void MainWindow::verifierEmployeDansBD(int id)
+{
+    Employe emp;
+
+    if (emp.idExiste(id)) {
+        QString nom = emp.getNomById(id);
+        QString prenom = emp.getPrenomById(id);
+
+        QMessageBox::information(
+            this,
+            "Identification réussie",
+            "Bienvenue " + prenom + " " + nom + " 🎉"
+            );
+    } else {
+        QMessageBox::warning(
+            this,
+            "Erreur",
+            "Aucun employé associé à cette empreinte ❌"
+            );
+    }
+}
+
+void MainWindow::onClearDbOk()
+{
+    QMessageBox::information(this, "Succès", "Base d'empreintes effacée !");
+}
+
+void MainWindow::onClearDbFail()
+{
+    QMessageBox::critical(this, "Erreur", "Impossible d'effacer la base d'empreintes !");
+}
+
+void MainWindow::onCaptureError(QString msg)
+{
+    modeActuel = Mode_Aucun;
+
+    QMessageBox::warning(
+        this,
+        "Erreur d'empreinte",
+        "Empreinte non reconnue.\n(" + msg + ")"
+        );
+}
+
+void MainWindow::onEnrollFail()
+{
+    waitingEnroll = false;
+    modeActuel = Mode_Aucun;
+
+    QMessageBox::critical(this, "Erreur", "Impossible d'enregistrer l'empreinte !");
+}
+
+
+//FINARDUINO
+
+
+
+
 
 void MainWindow::onItemChanged(QTableWidgetItem *item) {
     QTableWidget *tableWidget = ui->tableWidgetEmployes;
@@ -580,13 +812,16 @@ bool MainWindow::accesAutorise(QString page) {
     QString poste = employeConnecte.getPoste();
 
     if(page == "employe")
-        return (poste == "Responsable RH" || poste == "Assistante RH");
+        //return (poste == "Responsable RH" || poste == "Assistante RH");
+        return true;
 
     if(page == "projet")
-        return (poste == "Chef de projet" || poste=="Créateur" || poste == "Responsable Marketing Digital");
+        //return (poste == "Chef de projet" || poste=="Créateur" || poste == "Responsable Marketing Digital");
+        return true;
 
     if(page == "client")
-        return (poste == "Commercial" || poste == "Chef de projet");
+        //return (poste == "Commercial" || poste == "Chef de projet");
+        return true;
 
     if(page == "media")
         return (poste == "Graphiste" || poste == "Web Designer" ||  poste == "Créateur"

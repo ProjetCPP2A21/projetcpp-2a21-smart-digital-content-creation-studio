@@ -456,7 +456,7 @@ QPushButton:hover {
        </rect>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="page_projet">
        <widget class="QPushButton" name="btnSupprimerProjet">
@@ -1326,7 +1326,7 @@ QPushButton:hover {
 }</string>
              </property>
              <property name="text">
-              <string>Export CSV</string>
+              <string>Export PDF</string>
              </property>
             </widget>
            </item>
@@ -2182,6 +2182,22 @@ QPushButton:hover {
            </property>
            <property name="text">
             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt; font-weight:700; color:#aa55ff;&quot;&gt;Mot de passe&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+          </widget>
+          <widget class="QPushButton" name="btnScanner">
+           <property name="geometry">
+            <rect>
+             <x>340</x>
+             <y>499</y>
+             <width>91</width>
+             <height>31</height>
+            </rect>
+           </property>
+           <property name="styleSheet">
+            <string notr="true"/>
+           </property>
+           <property name="text">
+            <string>scanner</string>
            </property>
           </widget>
          </widget>

@@ -85,6 +85,16 @@ public:
     bool idExiste(int id);  // Vérifie existence
     bool chargerParEmail(const QString& email);
     bool mettreAJourMdp(const QString& nouveau);
+
+
+
+
+    //ARDUINO
+    QString getNomById(int id);
+    QString getPrenomById(int id);
+    int getId() const { return id_employe; }
+
+
 };
 
 #endif // EMPLOYE_H

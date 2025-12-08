@@ -22,6 +22,15 @@
 #include "sponsor.h"
 #include <QSortFilterProxyModel>
 
+
+//ARDUINO
+#include "arduino_manager.h"
+#include <QMap>
+
+
+
+//FIN ARDUINO
+
 QT_BEGIN_NAMESPACE
 namespace Ui {
 class MainWindow;
@@ -107,6 +116,26 @@ private slots:
 //ressource
     void on_ImpBut_clicked();
 
+
+    // === ARDUINO ===
+    void onDuplicateDetected();
+    void onNoDuplicate();
+    void onEnrollOk();
+    void onEnrollFail();
+    void onFingerId(int id);
+    void onCaptureError(QString msg);
+    void onClearDbOk();
+    void onClearDbFail();
+    void verifierEmployeDansBD(int id);
+    //scan
+    void on_btnScanner_clicked();
+    //MAP
+
+
+    // === FIN ARDUINO ===
+
+
+
 private:
     Ui::MainWindow *ui;
     QToolBar *m_tb = nullptr;
@@ -134,5 +163,57 @@ private:
     Employe employeRecup;
     int tentative_mdp_oublie = 0;
     void redirigerSelonDroits();
+
+
+
+
+    // === EMPREINTE + ARDUINO ===
+    // ==========================
+    // VARIABLES TEMPORAIRES EMPLOYÉ
+    // ==========================
+
+    QString tempNom;
+    QString tempPrenom;
+    QString tempEmail;
+    QString tempMdp;
+    QString tempPoste;
+    QString tempQ;
+    QString tempR;
+
+    int tempFingerprintID = -1;  // ID entre 1 et 127 pour le capteur
+    int tempEmployeeID = -1;     // ID employé dans Oracle
+
+    // ==========================
+    // ÉTATS D'ATTENTE
+    // ==========================
+    bool waitingDuplicate = false;  // Attente réponse CHECK_DUPLICATE
+    bool waitingEnroll = false;     // Attente réponse ENROLL
+
+    // ==========================
+    // MODE D'OPÉRATION
+    // ==========================
+    enum ModeOperation {
+        Mode_Aucun,
+        Mode_Ajout,
+        Mode_Identification
+    };
+
+    ModeOperation modeActuel = Mode_Aucun;
+
+    // ==========================
+    // ARDUINO + MAPPING EMPREINTES
+    // ==========================
+    ArduinoManager *arduino;
+
+    // Mapping : FingerprintID (1–127) → ID_EMPLOYE (Oracle)
+    QMap<int, int> fpMap;
+
+    // === FIN EMPREINTE ===
+    QMap<int, int> fingerprintMap;   // fpID → employeeID
+    // fpID → employeeID Oracle
+    int getNextFingerprintSlot();
+    void saveFingerprintMap();
+    void loadFingerprintMap();
+
 };
 #endif // MAINWINDOW_H

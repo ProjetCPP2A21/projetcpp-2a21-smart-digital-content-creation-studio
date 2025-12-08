@@ -154,3 +154,29 @@ bool Employe::mettreAJourMdp(const QString& nouveau) {
     query.bindValue(":id", id_employe);
     return query.exec();
 }
+
+
+
+
+//ARDUINO
+QString Employe::getNomById(int id)
+{
+    QSqlQuery q;
+    q.prepare("SELECT nom FROM employe WHERE id_employe = :id");
+    q.bindValue(":id", id);
+    q.exec();
+    if (q.next())
+        return q.value(0).toString();
+    return "";
+}
+
+QString Employe::getPrenomById(int id)
+{
+    QSqlQuery q;
+    q.prepare("SELECT prenom FROM employe WHERE id_employe = :id");
+    q.bindValue(":id", id);
+    q.exec();
+    if (q.next())
+        return q.value(0).toString();
+    return "";
+}
