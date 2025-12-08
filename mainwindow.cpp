@@ -282,7 +282,8 @@ void MainWindow::ajouterEmploye()
 
     arduino->sendCommand("CHECK_DUPLICATE");
 
-    QMessageBox::information(this, "Empreinte", "Placez votre doigt sur le capteur.");
+    //lcd
+    arduino->sendCommand("INIT\n");
 }
 
 void MainWindow::onDuplicateDetected()
@@ -290,7 +291,8 @@ void MainWindow::onDuplicateDetected()
     waitingDuplicate = false;
     modeActuel = Mode_Aucun;
 
-    QMessageBox::warning(this, "Doublon", "Cette empreinte existe déjà !");
+    arduino->sendCommand("ERR|EXISTS\n");
+
 }
 
 void MainWindow::onNoDuplicate()
@@ -330,7 +332,8 @@ void MainWindow::onNoDuplicate()
     waitingEnroll = true;
     modeActuel = Mode_Ajout;
 
-    QMessageBox::information(this, "Empreinte", "Retirez puis replacez votre doigt.");
+    arduino->sendCommand("ERR|RETRY\n");
+
 }
 
 void MainWindow::onEnrollOk()
@@ -338,12 +341,9 @@ void MainWindow::onEnrollOk()
     waitingEnroll = false;
     modeActuel = Mode_Aucun;
 
-    QMessageBox::information(
-        this,
-        "Succès",
-        "Employé ajouté avec succès !\nBienvenue " +
-            tempPrenom + " " + tempNom + " 🎉"
-        );
+    QString nomComplet = tempPrenom + " " + tempNom;
+
+    arduino->sendCommand("AJOUT_OK|" + nomComplet + "\n");
 
     saveFingerprintMap();
 
@@ -375,9 +375,10 @@ void MainWindow::on_btnScanner_clicked()
 void MainWindow::onFingerId(int id)
 {
     if (!fingerprintMap.contains(id)) {
-        QMessageBox::warning(this, "Erreur", "Empreinte inexistante ❌");
+        arduino->sendCommand("ERR|UNKNOWN\n");
         return;
     }
+
 
     int realEmployeeID = fingerprintMap[id];
     verifierEmployeDansBD(realEmployeeID);
@@ -438,13 +439,13 @@ void MainWindow::verifierEmployeDansBD(int id)
         QMessageBox::information(
             this,
             "Identification réussie",
-            "Bienvenue " + prenom + " " + nom + " 🎉"
+            "Bienvenue " + prenom + " " + nom
             );
     } else {
         QMessageBox::warning(
             this,
             "Erreur",
-            "Aucun employé associé à cette empreinte ❌"
+            "Aucun employé associé à cette empreinte "
             );
     }
 }

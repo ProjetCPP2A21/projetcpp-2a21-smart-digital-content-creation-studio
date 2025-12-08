@@ -12,6 +12,8 @@ public:
     explicit ArduinoManager(QObject *parent = nullptr);
     bool connectArduino(const QString &portName = "COM9");
     void sendCommand(const QString &cmd);
+    QSerialPort* getserial();
+    void write(QByteArray);
 
 signals:
     void duplicateDetected();

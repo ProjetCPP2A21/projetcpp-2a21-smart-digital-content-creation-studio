@@ -25,9 +25,26 @@ bool ArduinoManager::connectArduino(const QString &portName)
 
 void ArduinoManager::sendCommand(const QString &cmd)
 {
-    if (serial && serial->isOpen()) {
-        serial->write(cmd.toUtf8());
-        serial->write("\n");
+    if (serial && serial->isOpen() && serial->isWritable()) {
+        QByteArray data = cmd.toUtf8();  // convert QString to QByteArray
+        data.append('\n');                // add newline for Arduino
+        serial->write(data);
+        serial->flush();                  // optional: ensure data is sent immediately
+    } else {
+        qDebug() << "Impossible d'envoyer la commande, port Arduino fermé ou non disponible";
+    }
+}
+
+
+QSerialPort* ArduinoManager::getserial() { return serial; }
+
+void ArduinoManager::write(QByteArray d)
+{
+    if (serial && serial->isOpen() && serial->isWritable()) {
+        serial->write(d);
+        serial->write("\n");  // ensure Arduino reads full line
+    } else {
+        qDebug() << "Impossible d'écrire vers Arduino ! Port fermé ou non disponible";
     }
 }
 
